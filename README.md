@@ -40,7 +40,6 @@ A real terminal - Like opening a terminal on your Linux, but in your browser!
 
 │  │  - Check/Reset buttons                           │  │
 
-
 │  └──────────────────────────────────────────────────┘  │
 
 │                          ↕                              │
@@ -49,38 +48,71 @@ A real terminal - Like opening a terminal on your Linux, but in your browser!
 │              HTTP Requests & WebSocket                  │
 
 └─────────────────────────────────────────────────────────┘
+
                           ↕
 ┌─────────────────────────────────────────────────────────┐
+
 │              NODE.JS SERVER (server.js)                 │
+
 │  ┌──────────────────────────────────────────────────┐  │
+
 │  │  Express Web Server (Port 3000)                  │  │
+
 │  │  - Serves HTML files                             │  │
+
 │  │  - Handles API requests                          │  │
+
 │  │                                                   │  │
+
 │  │  WebSocket Server                                │  │
+
 │  │  - Real-time terminal connection                 │  │
+
 │  │                                                   │  │
+
 │  │  node-pty (Pseudo Terminal)                      │  │
+
+
 │  │  - Creates real bash shell                       │  │
+
 │  └──────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
-                          ↕
-┌─────────────────────────────────────────────────────────┐
-│              YOUR LINUX SYSTEM                          │
-│  - Real bash shell running                              │
-│  - Commands execute here (groupadd, useradd, etc.)     │
-│  - Files/users actually created on your system         │
+
 └─────────────────────────────────────────────────────────┘
 
+                          ↕
+
+┌─────────────────────────────────────────────────────────┐
+
+│              YOUR LINUX SYSTEM                          │
+
+│  - Real bash shell running                              │
+
+│  - Commands execute here (groupadd, useradd, etc.)     │
+
+│  - Files/users actually created on your system         │
+
+└─────────────────────────────────────────────────────────┘
+
+
 📁 Project Files Explained
+
 rhel-user-lab/
+
+
 ├── package.json          # Lists all dependencies (like a shopping list)
+
 ├── server.js            # The brain - runs the server and terminal
+
 ├── public/              # Files sent to browser
+
 │   └── index.html       # The webpage you see
+
 └── node_modules/        # Downloaded libraries (created by npm install)
+
 1. package.json - The Shopping List
+
 json{
+
   "dependencies": {
     "express": "Web server framework",
     "cors": "Allows browser to talk to server",
@@ -128,6 +160,7 @@ wss.on('connection', (ws) => {
         }
     });
 });
+
 What it does:
 
 Browser connects → Create a real bash terminal
