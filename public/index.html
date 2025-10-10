@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RHEL User Creation Lab - Real Terminal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+        
+        .question-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 2px solid #e0e0e0;
+            overflow-y: auto;
+        }
+        
+        .terminal-panel {
+            background: #000;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .question-panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .question {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ee0979;
+        }
+        
+        .question p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .requirements {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .requirements h3 {
+            color: #856404;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .requirements ul {
+            color: #856404;
+            margin-left: 20px;
+        }
+        
+        .requirements li {
+            margin: 5px 0;
+        }
+        
+        .terminal-container {
+            flex: 1;
+            background: #000;
+            border-radius: 8px;
+            padding: 10px;
+            overflow: hidden;
+        }
+        
+        #terminal {
+            height: 100%;
+            width: 100%;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .check-btn {
+            background: #007bff;
+            color: white;
+            width: 100%;
+            margin-top: 15px;
+            padding: 15px;
+            font-size: 16px;
+        }
+        
+        .check-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .check-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .reset-btn {
+            background: #6c757d;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .reset-btn:hover {
+            background: #545b62;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .check-item {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        
+        .check-item.passed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .check-item.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .hint {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        
+        .hint strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #666;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .connection-status {
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9em;
+            margin-top: 10px;
+            border-radius: 6px;
+        }
+        
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .connection-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .question-panel {
+                border-right: none;
+                border-bottom: 2px solid #e0e0e0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐧 RHEL User Creation Lab</h1>
+            <p>Practice creating users in Red Hat Enterprise Linux</p>
+            <span class="badge" id="statusBadge">🔄 Connecting...</span>
+        </div>
+        
+        <div class="content">
+            <div class="question-panel">
+                <h2>📋 Task</h2>
+                <div class="question">
+                    <p><strong>Scenario:</strong> You are a system administrator and need to create a new user account for a developer joining your team.</p>
+                    
+                    <div class="requirements">
+                        <h3>Requirements:</h3>
+                        <ul>
+                            <li><strong>Username:</strong> john_dev</li>
+                            <li><strong>User ID (UID):</strong> 2500</li>
+                            <li><strong>Home Directory:</strong> /home/john_dev</li>
+                            <li><strong>Shell:</strong> /bin/bash</li>
+                            <li><strong>Comment:</strong> Developer Account</li>
+                            <li><strong>Primary Group:</strong> developers (GID: 3000)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="hint">
+                        <strong>💡 Solution Steps:</strong>
+                        1. Create the group first:<br>
+                        <code>sudo groupadd -g 3000 developers</code><br><br>
+                        2. Create the user:<br>
+                        <code>sudo useradd -u 2500 -g developers -d /home/john_dev -s /bin/bash -c "Developer Account" john_dev</code><br><br>
+                        3. Verify with:<br>
+                        <code>id john_dev</code><br>
+                        <code>getent passwd john_dev</code>
+                    </div>
+                </div>
+                
+                <div class="connection-status" id="connectionStatus"></div>
+                
+                <button class="check-btn" id="checkBtn" onclick="checkSolution()">✓ Check Solution</button>
+                <button class="reset-btn" onclick="resetLab()">🔄 Reset Lab</button>
+                
+                <div class="loading" id="loading">⏳ Checking...</div>
+                <div id="result" class="result"></div>
+            </div>
+            
+            <div class="terminal-panel">
+                <div class="terminal-container">
+                    <div id="terminal"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        const WS_URL = API_URL.replace('http', 'ws');
+        
+        let term;
+        let socket;
+        let fitAddon;
+        let isConnected = false;
+
+        // Initialize terminal
+        function initTerminal() {
+            // Create terminal instance
+            term = new Terminal({
+                cursorBlink: true,
+                fontSize: 14,
+                fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+                theme: {
+                    background: '#000000',
+                    foreground: '#ffffff',
+                    cursor: '#ffffff',
+                    black: '#000000',
+                    red: '#ff0000',
+                    green: '#00ff00',
+                    yellow: '#ffff00',
+                    blue: '#0000ff',
+                    magenta: '#ff00ff',
+                    cyan: '#00ffff',
+                    white: '#ffffff',
+                    brightBlack: '#808080',
+                    brightRed: '#ff0000',
+                    brightGreen: '#00ff00',
+                    brightYellow: '#ffff00',
+                    brightBlue: '#0000ff',
+                    brightMagenta: '#ff00ff',
+                    brightCyan: '#00ffff',
+                    brightWhite: '#ffffff'
+                },
+                rows: 24,
+                cols: 80
+            });
+
+            // Fit addon for responsive terminal
+            fitAddon = new FitAddon.FitAddon();
+            term.loadAddon(fitAddon);
+
+            // Open terminal
+            term.open(document.getElementById('terminal'));
+            fitAddon.fit();
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                fitAddon.fit();
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({
+                        type: 'resize',
+                        cols: term.cols,
+                        rows: term.rows
+                    }));
+                }
+            });
+
+            // Connect to WebSocket
+            connectWebSocket();
+        }
+
+        function connectWebSocket() {
+            const statusBadge = document.getElementById('statusBadge');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const checkBtn = document.getElementById('checkBtn');
+
+            term.writeln('\x1b[33m🔄 Connecting to terminal server...\x1b[0m');
+
+            socket = new WebSocket(WS_URL);
+
+            socket.onopen = () => {
+                term.writeln('\x1b[32m✓ Connected! You now have a real terminal.\x1b[0m');
+                term.writeln('\x1b[36mType your commands below. Use sudo for privileged operations.\x1b[0m');
+                term.writeln('');
+                
+                isConnected = true;
+                statusBadge.textContent = '⚡ Real Terminal Connected';
+                statusBadge.style.background = 'rgba(255,255,255,0.2)';
+                
+                connectionStatus.className = 'connection-status connected';
+                connectionStatus.textContent = '✓ Real interactive terminal active';
+                
+                checkBtn.disabled = false;
+
+                // Send terminal size
+                socket.send(JSON.stringify({
+                    type: 'resize',
+                    cols: term.cols,
+                    rows: term.rows
+                }));
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'output') {
+                        term.write(msg.data);
+                    } else if (msg.type === 'exit') {
+                        term.writeln('\r\n\x1b[31mTerminal session ended.\x1b[0m');
+                        isConnected = false;
+                    }
+                } catch (e) {
+                    console.error('Error parsing message:', e);
+                }
+            };
+
+            socket.onerror = (error) => {
+                term.writeln('\r\n\x1b[31m✗ Connection error!\x1b[0m');
+                term.writeln('\x1b[31mMake sure the server is running: sudo node server.js\x1b[0m');
+                
+                statusBadge.textContent = '❌ Disconnected';
+                statusBadge.style.background = 'rgba(255,0,0,0.3)';
+                
+                connectionStatus.className = 'connection-status disconnected';
+                connectionStatus.textContent = '❌ Server not running';
+                
+                isConnected = false;
+                checkBtn.disabled = true;
+            };
+
+            socket.onclose = () => {
+                if (isConnected) {
+                    term.writeln('\r\n\x1b[33m⚠ Disconnected from server.\x1b[0m');
+                    isConnected = false;
+                    statusBadge.textContent = '❌ Disconnected';
+                    connectionStatus.className = 'connection-status disconnected';
+                    connectionStatus.textContent = '❌ Connection lost';
+                    checkBtn.disabled = true;
+                    
+                    // Try to reconnect after 3 seconds
+                    setTimeout(() => {
+                        term.writeln('\x1b[33m🔄 Attempting to reconnect...\x1b[0m');
+                        connectWebSocket();
+                    }, 3000);
+                }
+            };
+
+            // Handle terminal input
+            term.onData((data) => {
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({
+                        type: 'input',
+                        data: data
+                    }));
+                }
+            });
+        }
+
+        async function checkSolution() {
+            if (!isConnected) {
+                alert('Not connected to server. Please start the server first.');
+                return;
+            }
+            
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            loading.classList.add('show');
+            result.classList.remove('show');
+            
+            try {
+                const response = await fetch(`${API_URL}/check-solution`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                loading.classList.remove('show');
+                result.classList.add('show');
+                
+                if (data.success) {
+                    result.className = 'result show success';
+                    result.innerHTML = '<strong>🎉 Excellent!</strong><br>You have successfully completed the task!<br><br>';
+                    data.checks.forEach(check => {
+                        result.innerHTML += `<div class="check-item passed">${check.message}</div>`;
+                    });
+                } else {
+                    result.className = 'result show error';
+                    result.innerHTML = '<strong>❌ Issues Found:</strong><br><br>';
+                    data.checks.forEach(check => {
+                        const className = check.passed ? 'passed' : 'failed';
+                        result.innerHTML += `<div class="check-item ${className}">${check.message}</div>`;
+                    });
+                }
+            } catch (error) {
+                loading.classList.remove('show');
+                result.className = 'result show error';
+                result.classList.add('show');
+                result.innerHTML = '<strong>Error:</strong> Cannot connect to server. Make sure the backend is running.';
+            }
+        }
+
+        async function resetLab() {
+            if (!isConnected) {
+                alert('Not connected to server. Please start the server first.');
+                return;
+            }
+            
+            if (!confirm('This will delete the user and group. Continue?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/reset`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                term.writeln('\r\n\x1b[32m=== Lab Environment Reset ===\x1b[0m');
+                term.writeln(`\x1b[32m${data.output}\x1b[0m\r\n`);
+                
+                const result = document.getElementById('result');
+                result.classList.remove('show');
+            } catch (error) {
+                term.writeln('\r\n\x1b[31mError: Cannot connect to server\x1b[0m\r\n');
+            }
+        }
+
+        // Initialize on load
+        window.onload = initTerminal;
+    </script>
+</body>
+</html>
