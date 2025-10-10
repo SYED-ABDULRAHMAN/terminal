@@ -1,17 +1,3 @@
-Prerequisite and to run the application commands
-
-apt npm install
-
-npm install node-pty ws
-
-sudo apt-get install -y make python3 build-essential
-
-npm install node-pty ws
-
-
-sudo node server.js
-
-
 # 🐧 RHEL User Creation Lab
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
