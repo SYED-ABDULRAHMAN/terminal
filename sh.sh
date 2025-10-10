@@ -1,3 +1,5 @@
+# schript to verify all files are present in folders and also checks wheather backend servor is running  or not 
+
 #!/bin/bash
 echo "=== Checking RHEL User Lab Setup ==="
 echo ""
