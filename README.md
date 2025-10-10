@@ -22,13 +22,22 @@ A real terminal - Like opening a terminal on your Linux, but in your browser!
 
 🏗️ Project Architecture (How It Works)
 ┌─────────────────────────────────────────────────────────┐
+
 │                    YOUR BROWSER                         │
+
 │  ┌──────────────────────────────────────────────────┐  │
+
 │  │  Web Interface (HTML + CSS + JavaScript)         │  │
+
 │  │  - Shows task instructions                       │  │
+
 │  │  - Displays terminal (xterm.js)                  │  │
+
 │  │  - Check/Reset buttons                           │  │
+
+
 │  └──────────────────────────────────────────────────┘  │
+
 │                          ↕                              │
 │              HTTP Requests & WebSocket                  │
 └─────────────────────────────────────────────────────────┘
