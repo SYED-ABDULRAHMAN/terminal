@@ -45,7 +45,13 @@ git clone https://github.com/yourusername/rhel-user-lab.git
 cd rhel-user-lab
 
 # Install dependencies
-npm install
+apt install npm
+
+npm install node-pty ws
+
+sudo apt-get install -y make python3 build-essential
+
+npm install node-pty ws
 
 # Start the server (requires sudo)
 sudo node server.js
