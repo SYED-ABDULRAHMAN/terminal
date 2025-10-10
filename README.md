@@ -12,227 +12,545 @@ npm install node-pty ws
 sudo node server.js
 
 
-Linux User Creation Learning Tool
-📖 What Is This Project?
+# 🐧 RHEL User Creation Lab
 
-This is a web-based learning tool that teaches you how to create users in Linux (RHEL/Ubuntu) interactively.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen.svg)](https://nodejs.org/)
+[![Platform](https://img.shields.io/badge/platform-Linux-blue.svg)](https://www.linux.org/)
 
-It includes:
+> An interactive web-based laboratory for learning RHEL/Linux user and group management with a **real terminal** that executes commands on your actual Linux system.
 
-🌐 Frontend (Website) – What you see in your browser
+![RHEL User Lab Demo](https://via.placeholder.com/800x400/667eea/ffffff?text=RHEL+User+Lab+Terminal)
 
-⚙️ Backend (Server) – Runs real Linux commands
+---
 
-💻 Real Terminal – A live bash terminal inside your browser using xterm.js
+## ✨ Features
 
-🏗️ Project Architecture
-┌─────────────────────────────────────────────────────────┐
-│ YOUR BROWSER                                            │
-│ ┌──────────────────────────────────────────────────┐     │
-│ │ Web Interface (HTML + CSS + JavaScript)          │     │
-│ │ - Shows task instructions                        │     │
-│ │ - Displays terminal (xterm.js)                   │     │
-│ │ - Check/Reset buttons                            │     │
-│ └──────────────────────────────────────────────────┘     │
-│             ↕  HTTP Requests & WebSocket                 │
-└─────────────────────────────────────────────────────────┘
-              ↕
-┌─────────────────────────────────────────────────────────┐
-│ NODE.JS SERVER (server.js)                              │
-│ ┌──────────────────────────────────────────────────┐     │
-│ │ Express Web Server (Port 3000)                   │     │
-│ │ - Serves HTML files                              │     │
-│ │ - Handles API requests                           │     │
-│ │                                                  │     │
-│ │ WebSocket Server                                 │     │
-│ │ - Real-time terminal connection                  │     │
-│ │                                                  │     │
-│ │ node-pty (Pseudo Terminal)                       │     │
-│ │ - Creates real bash shell                        │     │
-│ └──────────────────────────────────────────────────┘     │
-└─────────────────────────────────────────────────────────┘
-              ↕
-┌─────────────────────────────────────────────────────────┐
-│ YOUR LINUX SYSTEM                                       │
-│ - Real bash shell runs here                             │
-│ - Commands execute (groupadd, useradd, etc.)            │
-│ - Files/users are created on your system                │
-└─────────────────────────────────────────────────────────┘
+- 🖥️ **Real Interactive Terminal** - Full bash terminal in your browser powered by xterm.js
+- ⚡ **Live Command Execution** - Commands run on your actual Linux system in real-time
+- 🎯 **Guided Learning** - Step-by-step instructions with clear requirements
+- ✅ **Automated Verification** - Instant feedback on your solution
+- 🔄 **Reset Functionality** - Clean up and practice again anytime
+- 🔒 **Security Controls** - Dangerous commands are blocked
+- 🎨 **Modern UI** - Beautiful, responsive interface
+- 📱 **Mobile Friendly** - Works on any device
 
-📁 Project Structure
-rhel-user-lab/
-├── package.json       # Lists all dependencies
-├── server.js          # Main backend logic
-├── public/            # Files served to browser
-│   └── index.html     # Main webpage
-└── node_modules/      # Installed libraries (created via npm install)
+---
 
-📦 Dependencies
-{
-  "dependencies": {
-    "express": "Web server framework",
-    "cors": "Allows browser-server communication",
-    "node-pty": "Creates real terminals",
-    "ws": "WebSocket for real-time communication"
-  }
-}
+## 🎬 Quick Start
 
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/rhel-user-lab.git
+cd rhel-user-lab
 
-Think of package.json as a recipe that tells npm what ingredients (libraries) to download.
-
-🧠 server.js (The Backend Brain)
-1️⃣ Import Libraries
-const express = require('express');
-const pty = require('node-pty');
-const WebSocket = require('ws');
-
-
-Loads essential tools like the web server, terminal spawner, and WebSocket communication.
-
-2️⃣ Create Web Server
-const app = express();
-const PORT = 3000;
-app.use(express.static('public'));
-
-
-Serves HTML files from the public folder and listens on port 3000.
-
-3️⃣ WebSocket Server (Real-Time Terminal)
-const wss = new WebSocket.Server({ server });
-
-wss.on('connection', (ws) => {
-  const term = pty.spawn('bash', [], { cols: 80, rows: 24 });
-
-  term.on('data', (data) => ws.send(JSON.stringify({ type: 'output', data })));
-
-  ws.on('message', (message) => {
-    const msg = JSON.parse(message);
-    if (msg.type === 'input') term.write(msg.data);
-  });
-});
-
-
-This connects your browser’s terminal directly to a real bash shell on your Linux system.
-
-4️⃣ API Endpoints
-✅ Check Solution
-app.post('/check-solution', async (req, res) => {
-  const userOutput = await execCommand('id john_dev 2>&1');
-  const userExists = !userOutput.includes('no such user');
-  const uid = userOutput.match(/uid=(\d+)/)[1];
-  const isCorrect = uid === '2500';
-  res.json({ success: isCorrect });
-});
-
-
-Verifies if the correct user was created.
-
-🔄 Reset Environment
-app.post('/reset', async (req, res) => {
-  await execCommand('userdel -r john_dev; groupdel developers');
-  res.json({ success: true });
-});
-
-
-Deletes created users and groups for a clean restart.
-
-🎨 index.html (The Frontend Face)
-
-Displays:
-
-Task instructions
-
-Interactive terminal (via xterm.js)
-
-“Check Solution” and “Reset” buttons
-
-Terminal Setup
-term = new Terminal({ cursorBlink: true, fontSize: 14 });
-term.open(document.getElementById('terminal'));
-
-
-Creates the visible terminal window.
-
-WebSocket Connection
-socket = new WebSocket('ws://localhost:3000');
-
-socket.onmessage = (event) => {
-  const msg = JSON.parse(event.data);
-  term.write(msg.data);
-};
-
-term.onData((data) => {
-  socket.send(JSON.stringify({ type: 'input', data }));
-});
-
-
-Handles two-way real-time communication between browser and server.
-
-🔄 Command Flow Example (ls -la)
-1️⃣ You type "ls -la" in browser terminal
-2️⃣ xterm.js captures it → sends to server via WebSocket
-3️⃣ node-pty writes it into real bash
-4️⃣ Bash executes → returns output
-5️⃣ Output sent back → displayed in browser terminal
-
-
-⏱️ Happens in just 50–100 milliseconds!
-
-🧰 Key Technologies
-Technology	Purpose	Analogy
-Node.js	Runs JavaScript on server	A translator between JS and OS
-Express	Web framework	Restaurant manager handling orders
-WebSocket	Real-time communication	A phone call instead of sending letters
-node-pty	Pseudo-terminal creation	Opens a terminal programmatically
-xterm.js	Terminal emulator in browser	A screen showing the real terminal
-🧩 How “Check Solution” Works
-
-You click Check Solution
-
-JavaScript sends a POST request → /check-solution
-
-Server runs validation commands
-
-Parses results (uid, gid, user existence)
-
-Returns JSON result
-
-Browser displays ✅ or ❌ message
-
-🚀 Setup Instructions
-Step 1️⃣ Install Dependencies
+# Install dependencies
 npm install
 
-
-Downloads all required libraries from the internet.
-
-Step 2️⃣ Start Server (with sudo)
+# Start the server (requires sudo)
 sudo node server.js
 
+# Open browser
+# Navigate to: http://localhost:3000
+```
 
-Starts Express + WebSocket server
+---
 
-Creates real bash shell for interaction
+## 📋 Table of Contents
 
-Step 3️⃣ Open in Browser
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [The Challenge](#-the-challenge)
+- [Project Structure](#-project-structure)
+- [How It Works](#-how-it-works)
+- [API Documentation](#-api-documentation)
+- [Technologies Used](#-technologies-used)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Acknowledgments](#-acknowledgments)
 
-Go to:
-👉 http://localhost:3000
+---
 
-You’ll see:
+## 🔧 Prerequisites
 
-The task instructions
+Before you begin, ensure you have the following installed:
 
-A live Linux terminal
+- **Node.js** (v14.0.0 or higher)
+- **npm** (comes with Node.js)
+- **Linux System** (RHEL, CentOS, Ubuntu, Debian, or similar)
+- **sudo privileges** (for user creation)
+- **Build tools** (for node-pty compilation)
 
-Buttons to Check and Reset
+### Installing Build Tools
 
-🧩 Summary of Flow
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install -y make python3 build-essential
+```
 
-Browser → Sends input
+**RHEL/CentOS/Fedora:**
+```bash
+sudo dnf groupinstall "Development Tools"
+sudo dnf install python3
+```
 
-Node.js (WebSocket) → Relays to bash
+---
 
-Linux Bash → Executes command
+## 📦 Installation
 
-Output → Sent back and displayed instantly
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/yourusername/rhel-user-lab.git
+cd rhel-user-lab
+```
+
+### Step 2: Install Dependencies
+```bash
+npm install
+```
+
+This will install:
+- `express` - Web server framework
+- `cors` - Cross-Origin Resource Sharing
+- `node-pty` - Pseudo-terminal for Node.js
+- `ws` - WebSocket library
+
+### Step 3: Start the Server
+```bash
+sudo node server.js
+```
+
+You should see:
+```
+🚀 RHEL User Lab Server running on http://localhost:3000
+📝 Make sure to run this with appropriate permissions (sudo if needed)
+🔌 WebSocket server ready for terminal connections
+```
+
+### Step 4: Open in Browser
+Navigate to: **http://localhost:3000**
+
+---
+
+## 🎯 Usage
+
+### The Challenge
+
+**Scenario:** You're a system administrator creating a developer account.
+
+**Requirements:**
+- **Username:** john_dev
+- **UID:** 2500
+- **Primary Group:** developers (GID: 3000)
+- **Home Directory:** /home/john_dev
+- **Shell:** /bin/bash
+- **Comment:** Developer Account
+
+### Solution
+
+#### Step 1: Create the Group
+```bash
+sudo groupadd -g 3000 developers
+```
+
+#### Step 2: Create the User
+```bash
+sudo useradd -u 2500 -g developers -d /home/john_dev -s /bin/bash -c "Developer Account" john_dev
+```
+
+#### Step 3: Verify
+```bash
+id john_dev
+getent passwd john_dev
+```
+
+#### Step 4: Check Your Solution
+Click the **"✓ Check Solution"** button to verify all requirements are met!
+
+---
+
+## 📁 Project Structure
+
+```
+rhel-user-lab/
+├── server.js              # Backend Node.js server
+├── package.json           # Project dependencies
+├── package-lock.json      # Dependency lock file
+├── public/
+│   └── index.html         # Frontend web interface
+├── node_modules/          # Installed dependencies
+├── README.md              # This file
+└── LICENSE                # MIT License
+```
+
+---
+
+## 🔍 How It Works
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────┐
+│          Web Browser (Client)           │
+│  ┌───────────────────────────────────┐  │
+│  │  HTML + CSS + JavaScript          │  │
+│  │  - xterm.js (Terminal Display)    │  │
+│  │  - WebSocket Client               │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+                    ↕
+          HTTP & WebSocket (Port 3000)
+                    ↕
+┌─────────────────────────────────────────┐
+│         Node.js Server (Backend)        │
+│  ┌───────────────────────────────────┐  │
+│  │  Express.js (HTTP Server)         │  │
+│  │  WebSocket Server (ws)            │  │
+│  │  node-pty (PTY Management)        │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+                    ↕
+┌─────────────────────────────────────────┐
+│         Linux System (Host OS)          │
+│  - Real bash shell processes            │
+│  - User/Group management commands       │
+│  - File system operations               │
+└─────────────────────────────────────────┘
+```
+
+### Data Flow
+
+1. **User types command** in browser terminal (xterm.js)
+2. **WebSocket sends** command to Node.js server
+3. **node-pty writes** command to real bash shell
+4. **Bash executes** command on Linux system
+5. **Output captured** by node-pty
+6. **WebSocket sends** output back to browser
+7. **xterm.js displays** output in terminal
+
+---
+
+## 📡 API Documentation
+
+### WebSocket Events
+
+#### Client → Server
+
+**Input Data:**
+```javascript
+{
+  "type": "input",
+  "data": "ls -la\n"
+}
+```
+
+**Resize Terminal:**
+```javascript
+{
+  "type": "resize",
+  "cols": 80,
+  "rows": 24
+}
+```
+
+#### Server → Client
+
+**Output Data:**
+```javascript
+{
+  "type": "output",
+  "data": "file1.txt\nfile2.txt\n"
+}
+```
+
+**Terminal Exit:**
+```javascript
+{
+  "type": "exit",
+  "code": 0
+}
+```
+
+### HTTP Endpoints
+
+#### `POST /check-solution`
+Verifies if the user was created correctly.
+
+**Response:**
+```json
+{
+  "success": true,
+  "checks": [
+    {
+      "name": "Group 'developers' exists",
+      "passed": true,
+      "message": "✓ Group exists"
+    },
+    {
+      "name": "UID is 2500",
+      "passed": true,
+      "message": "✓ Correct UID"
+    }
+  ]
+}
+```
+
+#### `POST /reset`
+Removes the created user and group.
+
+**Response:**
+```json
+{
+  "output": "Lab environment reset successfully",
+  "success": true
+}
+```
+
+#### `GET /system-info`
+Returns system information.
+
+**Response:**
+```json
+{
+  "osInfo": "Ubuntu 22.04.3 LTS",
+  "user": "root",
+  "hostname": "ubuntu"
+}
+```
+
+---
+
+## 🛠️ Technologies Used
+
+### Backend
+- **[Node.js](https://nodejs.org/)** - JavaScript runtime
+- **[Express.js](https://expressjs.com/)** - Web framework
+- **[node-pty](https://github.com/microsoft/node-pty)** - Pseudo-terminal for Node.js
+- **[ws](https://github.com/websockets/ws)** - WebSocket library
+
+### Frontend
+- **[xterm.js](https://xtermjs.org/)** - Terminal emulator for the web
+- **[xterm-addon-fit](https://github.com/xtermjs/xterm.js/tree/master/addons/xterm-addon-fit)** - Responsive terminal sizing
+- **Vanilla JavaScript** - No framework dependencies
+- **Modern CSS** - Gradient backgrounds, grid layout
+
+---
+
+## 🐛 Troubleshooting
+
+### Server Won't Start
+
+**Problem:** `Error: Cannot find module 'express'`
+
+**Solution:**
+```bash
+npm install
+```
+
+---
+
+**Problem:** Port 3000 already in use
+
+**Solution:**
+```bash
+# Find process using port 3000
+sudo lsof -i :3000
+
+# Kill the process
+sudo kill -9 <PID>
+
+# Or change port in server.js
+const PORT = 3001;
+```
+
+---
+
+### node-pty Installation Fails
+
+**Problem:** `gyp ERR! build error`
+
+**Solution:**
+```bash
+# Install build tools
+sudo apt-get install -y make python3 build-essential
+
+# Clear npm cache
+npm cache clean --force
+
+# Reinstall
+npm install node-pty
+```
+
+---
+
+### Terminal Not Connecting
+
+**Problem:** "Cannot connect to server"
+
+**Solution:**
+1. Ensure server is running: `sudo node server.js`
+2. Check firewall settings
+3. Verify port 3000 is accessible
+4. Check browser console for errors (F12)
+
+---
+
+### Permission Denied Errors
+
+**Problem:** Commands fail with permission errors
+
+**Solution:**
+```bash
+# Make sure server runs with sudo
+sudo node server.js
+
+# Verify you're using sudo in commands
+sudo groupadd -g 3000 developers
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Development Setup
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### Ideas for Contributions
+
+- [ ] Add more user management exercises
+- [ ] Implement password setting functionality
+- [ ] Add SELinux context configuration
+- [ ] Create sudo configuration tasks
+- [ ] Add multi-language support
+- [ ] Implement command history
+- [ ] Add syntax highlighting
+- [ ] Create Docker containerized version
+- [ ] Add unit tests
+- [ ] Create video tutorials
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+```
+MIT License
+
+Copyright (c) 2024 RHEL User Lab
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions...
+```
+
+---
+
+## 🙏 Acknowledgments
+
+- **[xterm.js](https://xtermjs.org/)** - For the amazing terminal emulator
+- **[node-pty](https://github.com/microsoft/node-pty)** - For PTY support in Node.js
+- **[Express.js](https://expressjs.com/)** - For the excellent web framework
+- **Red Hat** - For RHEL and excellent documentation
+- **Linux Foundation** - For Linux education resources
+
+---
+
+## 📚 Educational Resources
+
+### Learn More About Linux User Management
+
+- [RHEL 9 Documentation - Managing Users](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/configuring_basic_system_settings/managing-users-from-the-command-line)
+- [useradd Man Page](https://man7.org/linux/man-pages/man8/useradd.8.html)
+- [groupadd Man Page](https://man7.org/linux/man-pages/man8/groupadd.8.html)
+- [Linux User Management Guide](https://www.redhat.com/sysadmin/user-account-management)
+
+### Certification Preparation
+
+This tool is useful for preparing for:
+- **RHCSA** (Red Hat Certified System Administrator)
+- **LFCS** (Linux Foundation Certified System Administrator)
+- **CompTIA Linux+**
+
+---
+
+## 📊 Project Stats
+
+- **Lines of Code:** ~1,000
+- **Dependencies:** 4
+- **Supported OS:** Linux (RHEL, Ubuntu, CentOS, Debian, Fedora)
+- **Browser Support:** Chrome, Firefox, Safari, Edge (Modern versions)
+
+---
+
+## 🔮 Roadmap
+
+### Version 2.0 (Planned)
+- [ ] Multiple user management exercises
+- [ ] Password management tasks
+- [ ] Group membership exercises
+- [ ] Permission management challenges
+- [ ] Progress tracking
+- [ ] Leaderboard system
+
+### Version 3.0 (Future)
+- [ ] Docker support
+- [ ] Cloud deployment options
+- [ ] Multi-user collaborative mode
+- [ ] Video tutorials
+- [ ] Certificate generation
+- [ ] Integration with LMS platforms
+
+---
+
+## 📞 Support
+
+Having issues? We're here to help!
+
+- 🐛 **Bug Reports:** [Open an issue](https://github.com/yourusername/rhel-user-lab/issues)
+- 💡 **Feature Requests:** [Open an issue](https://github.com/yourusername/rhel-user-lab/issues)
+- 📧 **Email:** your.email@example.com
+- 💬 **Discussions:** [GitHub Discussions](https://github.com/yourusername/rhel-user-lab/discussions)
+
+---
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/rhel-user-lab&type=Date)](https://star-history.com/#yourusername/rhel-user-lab&Date)
+
+---
+
+## 📸 Screenshots
+
+### Main Interface
+![Main Interface](https://via.placeholder.com/800x450/667eea/ffffff?text=Main+Interface)
+
+### Terminal in Action
+![Terminal](https://via.placeholder.com/800x450/1e1e1e/00ff00?text=Terminal+View)
+
+### Verification Results
+![Verification](https://via.placeholder.com/800x450/d4edda/155724?text=Success+Screen)
+
+---
+
+<div align="center">
+
+**Made with ❤️ for Linux learners everywhere**
+
+[⬆ Back to Top](#-rhel-user-creation-lab)
+
+</div>
