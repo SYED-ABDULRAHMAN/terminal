@@ -13,14 +13,19 @@ sudo node server.js
 
 
 📖 What Is This Project?
+
 This is a web-based learning tool that teaches you how to create users in Linux (RHEL/Ubuntu). It has:
 
 A website (frontend) - What you see in your browser
+
 A server (backend) - Runs commands on your Linux machine
+
 A real terminal - Like opening a terminal on your Linux, but in your browser!
 
 
+
 🏗️ Project Architecture (How It Works)
+
 ┌─────────────────────────────────────────────────────────┐
 
 │                    YOUR BROWSER                         │
@@ -39,7 +44,10 @@ A real terminal - Like opening a terminal on your Linux, but in your browser!
 │  └──────────────────────────────────────────────────┘  │
 
 │                          ↕                              │
+
+
 │              HTTP Requests & WebSocket                  │
+
 └─────────────────────────────────────────────────────────┘
                           ↕
 ┌─────────────────────────────────────────────────────────┐
