@@ -39,6 +39,9 @@ sudo apt-get install -y make python3 build-essential
 
 npm install node-pty ws
 
+npm install express cors
+
+
 # Start the server (requires sudo)
 sudo node server.js
 
