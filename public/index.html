@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RHEL User Creation Lab - Real Terminal</title>
+    <title>RHEL User Lab - RHCSA Practice</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
@@ -18,44 +18,93 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            min-height: 100vh;
             overflow: hidden;
         }
         
         .header {
             background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
             color: white;
-            padding: 30px;
-            text-align: center;
+            padding: 20px 30px;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
         
         .header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
+            font-size: 1.8em;
         }
         
-        .badge {
-            display: inline-block;
+        .progress-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
             background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
+            padding: 8px 16px;
             border-radius: 20px;
             font-size: 0.9em;
-            margin-top: 10px;
+        }
+        
+        .question-nav {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .question-btn {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            min-width: 60px;
+        }
+        
+        .question-btn:hover {
+            background: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+        
+        .question-btn.active {
+            background: white;
+            color: #ee0979;
+            border-color: white;
+        }
+        
+        .question-btn.completed {
+            background: #00ff00;
+            color: #000;
+            border-color: #00ff00;
+        }
+        
+        .question-btn.skipped {
+            background: #ffbb00;
+            color: #000;
+            border-color: #ffbb00;
+        }
+        
+        .question-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .content {
             display: grid;
-            grid-template-columns: 400px 1fr;
-            gap: 0;
-            min-height: 600px;
+            grid-template-columns: 450px 1fr;
+            height: calc(100vh - 140px);
         }
         
         .question-panel {
@@ -72,13 +121,31 @@
             flex-direction: column;
         }
         
-        .question-panel h2 {
-            color: #333;
+        .question-header {
             margin-bottom: 20px;
-            font-size: 1.4em;
         }
         
-        .question {
+        .question-title {
+            color: #333;
+            font-size: 1.4em;
+            margin-bottom: 10px;
+        }
+        
+        .question-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .difficulty {
+            background: #fff3cd;
+            padding: 4px 12px;
+            border-radius: 12px;
+            color: #856404;
+        }
+        
+        .question-body {
             background: white;
             padding: 20px;
             border-radius: 8px;
@@ -86,7 +153,7 @@
             border-left: 4px solid #ee0979;
         }
         
-        .question p {
+        .question-body p {
             color: #555;
             line-height: 1.6;
             margin-bottom: 15px;
@@ -106,30 +173,94 @@
             margin-bottom: 10px;
         }
         
-        .requirements ul {
+        .requirement-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
             color: #856404;
-            margin-left: 20px;
         }
         
-        .requirements li {
-            margin: 5px 0;
+        .requirement-item.checked {
+            color: #155724;
+            background: #d4edda;
+            padding: 5px;
+            border-radius: 4px;
         }
         
-        .terminal-container {
-            flex: 1;
-            background: #000;
-            border-radius: 8px;
-            padding: 10px;
-            overflow: hidden;
+        .requirement-item.failed {
+            color: #721c24;
+            background: #f8d7da;
+            padding: 5px;
+            border-radius: 4px;
         }
         
-        #terminal {
-            height: 100%;
-            width: 100%;
+        .hint-section {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
         }
         
-        button {
-            padding: 12px 24px;
+        .hint-section h4 {
+            margin-bottom: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .hint-content {
+            display: none;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+        
+        .hint-content.show {
+            display: block;
+        }
+        
+        .solution-section {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        
+        .solution-section h4 {
+            margin-bottom: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .solution-content {
+            display: none;
+            margin-top: 10px;
+            line-height: 1.8;
+        }
+        
+        .solution-content.show {
+            display: block;
+        }
+        
+        .solution-content code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .action-buttons button {
+            padding: 12px;
             border: none;
             border-radius: 6px;
             font-weight: bold;
@@ -138,35 +269,59 @@
             font-size: 14px;
         }
         
-        .check-btn {
+        .btn-check {
             background: #007bff;
             color: white;
-            width: 100%;
-            margin-top: 15px;
+            grid-column: span 2;
             padding: 15px;
             font-size: 16px;
         }
         
-        .check-btn:hover {
+        .btn-check:hover {
             background: #0056b3;
             transform: translateY(-2px);
         }
         
-        .check-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
+        .btn-skip {
+            background: #ffc107;
+            color: #000;
         }
         
-        .reset-btn {
+        .btn-skip:hover {
+            background: #e0a800;
+        }
+        
+        .btn-reset {
             background: #6c757d;
             color: white;
-            width: 100%;
-            margin-top: 10px;
         }
         
-        .reset-btn:hover {
+        .btn-reset:hover {
             background: #545b62;
+        }
+        
+        .btn-prev {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-prev:hover {
+            background: #545b62;
+        }
+        
+        .btn-next {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-next:hover {
+            background: #218838;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
         }
         
         .result {
@@ -186,53 +341,29 @@
             color: #155724;
         }
         
+        .result.partial {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+        }
+        
         .result.error {
             background: #f8d7da;
             border: 1px solid #f5c6cb;
             color: #721c24;
         }
         
-        .check-item {
-            padding: 8px;
-            margin: 5px 0;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
-        
-        .check-item.passed {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .check-item.failed {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .hint {
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            color: #0c5460;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 15px;
-            font-size: 0.9em;
-        }
-        
-        .hint strong {
-            display: block;
-            margin-bottom: 8px;
-        }
-        
-        .loading {
-            display: none;
-            text-align: center;
+        .terminal-container {
+            flex: 1;
+            background: #000;
+            border-radius: 8px;
             padding: 10px;
-            color: #666;
+            overflow: hidden;
         }
         
-        .loading.show {
-            display: block;
+        #terminal {
+            height: 100%;
+            width: 100%;
         }
         
         .connection-status {
@@ -253,14 +384,31 @@
             color: #721c24;
         }
         
-        @media (max-width: 1024px) {
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #666;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        @media (max-width: 1200px) {
             .content {
                 grid-template-columns: 1fr;
+                height: auto;
             }
             
             .question-panel {
                 border-right: none;
                 border-bottom: 2px solid #e0e0e0;
+                max-height: 50vh;
+            }
+            
+            .terminal-panel {
+                min-height: 50vh;
             }
         }
     </style>
@@ -268,48 +416,66 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🐧 RHEL User Creation Lab</h1>
-            <p>Practice creating users in Red Hat Enterprise Linux</p>
-            <span class="badge" id="statusBadge">🔄 Connecting...</span>
+            <div class="header-top">
+                <h1>🐧 RHEL User Lab - RHCSA Practice</h1>
+                <div class="progress-info">
+                    <span id="progressText">Progress: 0/5</span>
+                    <span id="scoreText">Score: 0/100</span>
+                </div>
+            </div>
+            <div class="question-nav" id="questionNav">
+                <!-- Question buttons will be inserted here -->
+            </div>
         </div>
         
         <div class="content">
             <div class="question-panel">
-                <h2>📋 Task</h2>
-                <div class="question">
-                    <p><strong>Scenario:</strong> You are a system administrator and need to create a new user account for a developer joining your team.</p>
-                    
-                    <div class="requirements">
-                        <h3>Requirements:</h3>
-                        <ul>
-                            <li><strong>Username:</strong> john_dev</li>
-                            <li><strong>User ID (UID):</strong> 2500</li>
-                            <li><strong>Home Directory:</strong> /home/john_dev</li>
-                            <li><strong>Shell:</strong> /bin/bash</li>
-                            <li><strong>Comment:</strong> Developer Account</li>
-                            <li><strong>Primary Group:</strong> developers (GID: 3000)</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="hint">
-                        <strong>💡 Solution Steps:</strong>
-                        1. Create the group first:<br>
-                        <code>sudo groupadd -g 3000 developers</code><br><br>
-                        2. Create the user:<br>
-                        <code>sudo useradd -u 2500 -g developers -d /home/john_dev -s /bin/bash -c "Developer Account" john_dev</code><br><br>
-                        3. Verify with:<br>
-                        <code>id john_dev</code><br>
-                        <code>getent passwd john_dev</code>
+                <div class="question-header">
+                    <h2 class="question-title" id="questionTitle">Loading...</h2>
+                    <div class="question-meta">
+                        <span class="difficulty" id="questionDifficulty">⭐</span>
+                        <span id="questionCategory">Category</span>
+                        <span id="questionNumber">Question 1/5</span>
                     </div>
                 </div>
                 
-                <div class="connection-status" id="connectionStatus"></div>
+                <div class="question-body">
+                    <p id="questionDescription">Loading question...</p>
+                    
+                    <div class="requirements">
+                        <h3>📋 Requirements:</h3>
+                        <div id="requirementsList">
+                            <!-- Requirements will be inserted here -->
+                        </div>
+                    </div>
+                </div>
                 
-                <button class="check-btn" id="checkBtn" onclick="checkSolution()">✓ Check Solution</button>
-                <button class="reset-btn" onclick="resetLab()">🔄 Reset Lab</button>
+                <div class="hint-section">
+                    <h4 onclick="toggleHints()">💡 Hints <span id="hintToggle">[Show]</span></h4>
+                    <div class="hint-content" id="hintContent">
+                        <!-- Hints will be inserted here -->
+                    </div>
+                </div>
+                
+                <div class="solution-section">
+                    <h4 onclick="toggleSolution()">📖 Solution <span id="solutionToggle">[Show]</span></h4>
+                    <div class="solution-content" id="solutionContent">
+                        <!-- Solution will be inserted here -->
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn-check" id="checkBtn" onclick="checkAnswer()">🔍 Check Answer</button>
+                    <button class="btn-prev" id="prevBtn" onclick="prevQuestion()">← Previous</button>
+                    <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Next →</button>
+                    <button class="btn-skip" onclick="skipQuestion()">⏭️ Skip</button>
+                    <button class="btn-reset" onclick="resetCurrentQuestion()">🔄 Reset</button>
+                </div>
                 
                 <div class="loading" id="loading">⏳ Checking...</div>
                 <div id="result" class="result"></div>
+                
+                <div class="connection-status" id="connectionStatus"></div>
             </div>
             
             <div class="terminal-panel">
@@ -321,17 +487,454 @@
     </div>
 
     <script>
-        const API_URL = window.location.origin;
-        const WS_URL = API_URL.replace('http', 'ws');
-        
-        let term;
-        let socket;
-        let fitAddon;
+        // Questions Database
+        const questions = [
+            {
+                id: 1,
+                title: "Create Basic User Account",
+                category: "User Management",
+                difficulty: "⭐",
+                points: 15,
+                description: "You are a system administrator and need to create a new user account for a developer joining your team.",
+                requirements: [
+                    { id: 'username', text: 'Username: john_dev', check: 'username' },
+                    { id: 'uid', text: 'User ID (UID): 2500', check: 'uid' },
+                    { id: 'home', text: 'Home Directory: /home/john_dev', check: 'home' },
+                    { id: 'shell', text: 'Shell: /bin/bash', check: 'shell' },
+                    { id: 'comment', text: 'Comment: Developer Account', check: 'comment' },
+                    { id: 'group', text: 'Primary Group: developers (GID: 3000)', check: 'group' }
+                ],
+                hints: [
+                    "Always create the group before creating the user",
+                    "Use 'groupadd -g GID groupname' to create a group with specific GID",
+                    "Use 'useradd' command with appropriate flags: -u, -g, -d, -s, -c"
+                ],
+                solution: [
+                    "sudo groupadd -g 3000 developers",
+                    "sudo useradd -u 2500 -g developers -d /home/john_dev -s /bin/bash -c \"Developer Account\" john_dev",
+                    "id john_dev  # Verify the user",
+                    "getent passwd john_dev  # Check user details"
+                ],
+                verifyEndpoint: '/check-solution',
+                cleanupCommands: 'userdel -r john_dev; groupdel developers'
+            },
+            {
+                id: 2,
+                title: "Create User with Multiple Groups",
+                category: "User Management",
+                difficulty: "⭐⭐",
+                points: 20,
+                description: "Create a user account that belongs to multiple groups for a system administrator who needs access to various services.",
+                requirements: [
+                    { id: 'username', text: 'Username: admin_user', check: 'username' },
+                    { id: 'uid', text: 'User ID (UID): 3000', check: 'uid' },
+                    { id: 'primaryGroup', text: 'Primary Group: sysadmin (GID: 4000)', check: 'primaryGroup' },
+                    { id: 'secondaryGroups', text: 'Secondary Groups: wheel, docker', check: 'secondaryGroups' },
+                    { id: 'home', text: 'Home Directory: /home/admin_user', check: 'home' },
+                    { id: 'shell', text: 'Shell: /bin/bash', check: 'shell' }
+                ],
+                hints: [
+                    "Create all groups first (primary and secondary)",
+                    "Use -G flag for secondary groups (comma-separated, no spaces)",
+                    "The 'wheel' and 'docker' groups might already exist on your system"
+                ],
+                solution: [
+                    "sudo groupadd -g 4000 sysadmin",
+                    "sudo groupadd wheel 2>/dev/null || true  # Create if doesn't exist",
+                    "sudo groupadd docker 2>/dev/null || true",
+                    "sudo useradd -u 3000 -g sysadmin -G wheel,docker -d /home/admin_user -s /bin/bash admin_user",
+                    "id admin_user  # Verify groups",
+                    "groups admin_user  # List all groups"
+                ],
+                verifyEndpoint: '/check-question-2',
+                cleanupCommands: 'userdel -r admin_user; groupdel sysadmin'
+            },
+            {
+                id: 3,
+                title: "Create System Service Account",
+                category: "User Management",
+                difficulty: "⭐⭐",
+                points: 20,
+                description: "Create a system account for running a web service. System accounts are used by services and daemons, not for interactive login.",
+                requirements: [
+                    { id: 'username', text: 'Username: webapp', check: 'username' },
+                    { id: 'uid', text: 'UID: Below 1000 (system account range)', check: 'uid' },
+                    { id: 'home', text: 'Home Directory: /var/www/webapp', check: 'home' },
+                    { id: 'shell', text: 'Shell: /sbin/nologin (no login)', check: 'shell' },
+                    { id: 'system', text: 'System account flag used', check: 'system' }
+                ],
+                hints: [
+                    "Use the -r flag to create a system account",
+                    "System accounts automatically get UIDs below 1000",
+                    "/sbin/nologin prevents interactive login",
+                    "You may need to create the /var/www directory first"
+                ],
+                solution: [
+                    "sudo mkdir -p /var/www",
+                    "sudo useradd -r -d /var/www/webapp -s /sbin/nologin webapp",
+                    "id webapp  # UID should be < 1000",
+                    "getent passwd webapp"
+                ],
+                verifyEndpoint: '/check-question-3',
+                cleanupCommands: 'userdel -r webapp'
+            },
+            {
+                id: 4,
+                title: "Modify Existing User Properties",
+                category: "User Management",
+                difficulty: "⭐⭐⭐",
+                points: 25,
+                description: "You need to modify an existing user's properties. First create the user, then modify it according to the new requirements.",
+                requirements: [
+                    { id: 'username', text: 'Username: testuser', check: 'username' },
+                    { id: 'newShell', text: 'Modified Shell: /bin/zsh', check: 'shell' },
+                    { id: 'newHome', text: 'Modified Home: /opt/testuser', check: 'home' },
+                    { id: 'newComment', text: 'Modified Comment: Modified Test User', check: 'comment' },
+                    { id: 'addedGroup', text: 'Added to group: testgroup', check: 'group' }
+                ],
+                hints: [
+                    "First create the user with basic settings",
+                    "Use 'usermod' command to modify existing users",
+                    "Use -s for shell, -d for home, -c for comment",
+                    "Use -aG to ADD user to a supplementary group (don't remove from others)",
+                    "Create testgroup first before adding user to it"
+                ],
+                solution: [
+                    "# Step 1: Create initial user",
+                    "sudo useradd -m testuser",
+                    "",
+                    "# Step 2: Create the group",
+                    "sudo groupadd testgroup",
+                    "",
+                    "# Step 3: Modify user properties",
+                    "sudo usermod -s /bin/zsh testuser",
+                    "sudo usermod -d /opt/testuser -m testuser  # -m moves home directory",
+                    "sudo usermod -c \"Modified Test User\" testuser",
+                    "sudo usermod -aG testgroup testuser",
+                    "",
+                    "# Verify",
+                    "getent passwd testuser",
+                    "groups testuser"
+                ],
+                verifyEndpoint: '/check-question-4',
+                cleanupCommands: 'userdel -r testuser; groupdel testgroup; rm -rf /opt/testuser'
+            },
+            {
+                id: 5,
+                title: "Create User with Password Expiration",
+                category: "User Management",
+                difficulty: "⭐⭐⭐",
+                points: 20,
+                description: "Create a temporary contractor account with password expiration policy for security compliance.",
+                requirements: [
+                    { id: 'username', text: 'Username: contractor', check: 'username' },
+                    { id: 'uid', text: 'UID: 5000', check: 'uid' },
+                    { id: 'expiry', text: 'Account expires: 2025-12-31', check: 'expiry' },
+                    { id: 'maxdays', text: 'Password max age: 30 days', check: 'maxdays' },
+                    { id: 'warndays', text: 'Password warning: 7 days before expiry', check: 'warndays' }
+                ],
+                hints: [
+                    "Use 'chage' command to set password aging policies",
+                    "Use -E flag with useradd or chage for account expiration date",
+                    "Use -M for maximum password age",
+                    "Use -W for warning days",
+                    "Date format: YYYY-MM-DD"
+                ],
+                solution: [
+                    "# Create user with expiration date",
+                    "sudo useradd -u 5000 -e 2025-12-31 contractor",
+                    "",
+                    "# Set password aging policy",
+                    "sudo chage -M 30 contractor  # Max 30 days",
+                    "sudo chage -W 7 contractor   # Warn 7 days before",
+                    "",
+                    "# Verify settings",
+                    "sudo chage -l contractor",
+                    "getent passwd contractor"
+                ],
+                verifyEndpoint: '/check-question-5',
+                cleanupCommands: 'userdel -r contractor'
+            }
+        ];
+
+        // State Management
+        let currentQuestionIndex = 0;
+        let questionStates = [];
+        let term, socket, fitAddon;
         let isConnected = false;
 
-        // Initialize terminal
+        // Initialize from localStorage
+        function initializeState() {
+            const saved = localStorage.getItem('rhel_lab_progress');
+            if (saved) {
+                questionStates = JSON.parse(saved);
+            } else {
+                questionStates = questions.map(q => ({
+                    id: q.id,
+                    status: 'incomplete', // incomplete, skipped, completed
+                    score: 0,
+                    maxScore: q.points
+                }));
+                saveState();
+            }
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            localStorage.setItem('rhel_lab_progress', JSON.stringify(questionStates));
+        }
+
+        // Initialize
+        window.onload = function() {
+            initializeState();
+            renderQuestionNav();
+            loadQuestion(currentQuestionIndex);
+            initTerminal();
+        };
+
+        // Render question navigation buttons
+        function renderQuestionNav() {
+            const nav = document.getElementById('questionNav');
+            nav.innerHTML = '';
+            
+            questions.forEach((q, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'question-btn';
+                btn.textContent = `Q${q.id}`;
+                btn.onclick = () => loadQuestion(index);
+                
+                const state = questionStates[index];
+                if (state.status === 'completed') {
+                    btn.classList.add('completed');
+                    btn.innerHTML = `Q${q.id} ✓`;
+                } else if (state.status === 'skipped') {
+                    btn.classList.add('skipped');
+                    btn.innerHTML = `Q${q.id} ⏭`;
+                }
+                
+                if (index === currentQuestionIndex) {
+                    btn.classList.add('active');
+                }
+                
+                nav.appendChild(btn);
+            });
+            
+            updateProgress();
+        }
+
+        // Load question
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const q = questions[index];
+            
+            document.getElementById('questionTitle').textContent = q.title;
+            document.getElementById('questionDifficulty').textContent = q.difficulty;
+            document.getElementById('questionCategory').textContent = q.category;
+            document.getElementById('questionNumber').textContent = `Question ${index + 1}/5`;
+            document.getElementById('questionDescription').textContent = q.description;
+            
+            // Render requirements
+            const reqList = document.getElementById('requirementsList');
+            reqList.innerHTML = '';
+            q.requirements.forEach(req => {
+                const div = document.createElement('div');
+                div.className = 'requirement-item';
+                div.innerHTML = `<span>☐</span> <span>${req.text}</span>`;
+                div.id = `req-${req.id}`;
+                reqList.appendChild(div);
+            });
+            
+            // Render hints
+            const hintContent = document.getElementById('hintContent');
+            hintContent.innerHTML = q.hints.map(h => `• ${h}<br>`).join('');
+            
+            // Render solution
+            const solContent = document.getElementById('solutionContent');
+            solContent.innerHTML = q.solution.map(s => `<code>${s}</code><br>`).join('');
+            
+            // Update buttons
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').disabled = index === questions.length - 1;
+            
+            // Clear result
+            document.getElementById('result').classList.remove('show');
+            
+            // Update navigation
+            renderQuestionNav();
+        }
+
+        // Toggle hints
+        function toggleHints() {
+            const content = document.getElementById('hintContent');
+            const toggle = document.getElementById('hintToggle');
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                toggle.textContent = '[Show]';
+            } else {
+                content.classList.add('show');
+                toggle.textContent = '[Hide]';
+            }
+        }
+
+        // Toggle solution
+        function toggleSolution() {
+            const content = document.getElementById('solutionContent');
+            const toggle = document.getElementById('solutionToggle');
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                toggle.textContent = '[Show]';
+            } else {
+                content.classList.add('show');
+                toggle.textContent = '[Hide]';
+            }
+        }
+
+        // Check answer
+        async function checkAnswer() {
+            if (!isConnected) {
+                alert('Not connected to server. Please start the server first.');
+                return;
+            }
+            
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            loading.classList.add('show');
+            result.classList.remove('show');
+            
+            try {
+                const q = questions[currentQuestionIndex];
+                const response = await fetch(`${API_URL}${q.verifyEndpoint}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                loading.classList.remove('show');
+                result.classList.add('show');
+                
+                // Update requirement checkboxes
+                let correctCount = 0;
+                data.checks.forEach(check => {
+                    const reqEl = document.querySelector(`#requirementsList .requirement-item:nth-child(${data.checks.indexOf(check) + 1})`);
+                    if (reqEl) {
+                        if (check.passed) {
+                            reqEl.classList.add('checked');
+                            reqEl.classList.remove('failed');
+                            reqEl.querySelector('span:first-child').textContent = '✓';
+                            correctCount++;
+                        } else {
+                            reqEl.classList.add('failed');
+                            reqEl.classList.remove('checked');
+                            reqEl.querySelector('span:first-child').textContent = '✗';
+                        }
+                    }
+                });
+                
+                const totalReqs = q.requirements.length;
+                const percentage = (correctCount / totalReqs) * 100;
+                
+                if (data.success) {
+                    result.className = 'result show success';
+                    result.innerHTML = `<strong>🎉 Perfect!</strong><br>All requirements met! (${correctCount}/${totalReqs})<br><br>`;
+                    data.checks.forEach(check => {
+                        result.innerHTML += `<div style="padding:5px;">${check.message}</div>`;
+                    });
+                    
+                } else {
+                    result.className = 'result show error';
+                    result.innerHTML = `<strong>❌ Issues Found</strong><br>Progress: ${correctCount}/${totalReqs} requirements (${percentage.toFixed(0)}%)<br><br>`;
+                    data.checks.forEach(check => {
+                        result.innerHTML += `<div style="padding:5px;">${check.message}</div>`;
+                    });
+                }
+                
+            } catch (error) {
+                loading.classList.remove('show');
+                result.className = 'result show error';
+                result.classList.add('show');
+                result.innerHTML = '<strong>Error:</strong> Cannot connect to server. Make sure the backend is running.';
+            }
+        }
+
+        // Skip question
+        function skipQuestion() {
+            if (confirm('Skip this question? You can come back to it later.')) {
+                questionStates[currentQuestionIndex].status = 'skipped';
+                saveState();
+                
+                if (currentQuestionIndex < questions.length - 1) {
+                    loadQuestion(currentQuestionIndex + 1);
+                } else {
+                    renderQuestionNav();
+                }
+            }
+        }
+
+        // Previous question
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                loadQuestion(currentQuestionIndex - 1);
+            }
+        }
+
+        // Next question
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                loadQuestion(currentQuestionIndex + 1);
+            }
+        }
+
+        // Reset current question
+        async function resetCurrentQuestion() {
+            if (!confirm('Reset this question? This will clean up any users/groups you created.')) {
+                return;
+            }
+            
+            try {
+                const q = questions[currentQuestionIndex];
+                const response = await fetch(`${API_URL}/reset-question`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        questionId: q.id,
+                        cleanupCommands: q.cleanupCommands 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                term.writeln('\r\n\x1b[32m=== Question Reset ===\x1b[0m');
+                term.writeln(`\x1b[32m${data.output}\x1b[0m\r\n`);
+                
+                // Reset question state
+                questionStates[currentQuestionIndex].status = 'incomplete';
+                questionStates[currentQuestionIndex].score = 0;
+                saveState();
+                
+                // Reload question
+                loadQuestion(currentQuestionIndex);
+                
+            } catch (error) {
+                term.writeln('\r\n\x1b[31mError: Cannot connect to server\x1b[0m\r\n');
+            }
+        }
+
+        // Update progress display
+        function updateProgress() {
+            const completed = questionStates.filter(q => q.status === 'completed').length;
+            const totalScore = questionStates.reduce((sum, q) => sum + q.score, 0);
+            const maxScore = questions.reduce((sum, q) => sum + q.points, 0);
+            
+            document.getElementById('progressText').textContent = `Progress: ${completed}/5`;
+            document.getElementById('scoreText').textContent = `Score: ${totalScore}/${maxScore}`;
+        }
+
+        // Terminal initialization
+        const API_URL = window.location.origin;
+        const WS_URL = API_URL.replace('http', 'ws');
+
         function initTerminal() {
-            // Create terminal instance
             term = new Terminal({
                 cursorBlink: true,
                 fontSize: 14,
@@ -361,15 +964,11 @@
                 cols: 80
             });
 
-            // Fit addon for responsive terminal
             fitAddon = new FitAddon.FitAddon();
             term.loadAddon(fitAddon);
-
-            // Open terminal
             term.open(document.getElementById('terminal'));
             fitAddon.fit();
 
-            // Handle window resize
             window.addEventListener('resize', () => {
                 fitAddon.fit();
                 if (socket && socket.readyState === WebSocket.OPEN) {
@@ -381,12 +980,10 @@
                 }
             });
 
-            // Connect to WebSocket
             connectWebSocket();
         }
 
         function connectWebSocket() {
-            const statusBadge = document.getElementById('statusBadge');
             const connectionStatus = document.getElementById('connectionStatus');
             const checkBtn = document.getElementById('checkBtn');
 
@@ -400,15 +997,12 @@
                 term.writeln('');
                 
                 isConnected = true;
-                statusBadge.textContent = '⚡ Real Terminal Connected';
-                statusBadge.style.background = 'rgba(255,255,255,0.2)';
                 
                 connectionStatus.className = 'connection-status connected';
-                connectionStatus.textContent = '✓ Real interactive terminal active';
+                connectionStatus.textContent = '✓ Terminal connected';
                 
                 checkBtn.disabled = false;
 
-                // Send terminal size
                 socket.send(JSON.stringify({
                     type: 'resize',
                     cols: term.cols,
@@ -434,9 +1028,6 @@
                 term.writeln('\r\n\x1b[31m✗ Connection error!\x1b[0m');
                 term.writeln('\x1b[31mMake sure the server is running: sudo node server.js\x1b[0m');
                 
-                statusBadge.textContent = '❌ Disconnected';
-                statusBadge.style.background = 'rgba(255,0,0,0.3)';
-                
                 connectionStatus.className = 'connection-status disconnected';
                 connectionStatus.textContent = '❌ Server not running';
                 
@@ -448,12 +1039,10 @@
                 if (isConnected) {
                     term.writeln('\r\n\x1b[33m⚠ Disconnected from server.\x1b[0m');
                     isConnected = false;
-                    statusBadge.textContent = '❌ Disconnected';
                     connectionStatus.className = 'connection-status disconnected';
                     connectionStatus.textContent = '❌ Connection lost';
                     checkBtn.disabled = true;
                     
-                    // Try to reconnect after 3 seconds
                     setTimeout(() => {
                         term.writeln('\x1b[33m🔄 Attempting to reconnect...\x1b[0m');
                         connectWebSocket();
@@ -461,7 +1050,6 @@
                 }
             };
 
-            // Handle terminal input
             term.onData((data) => {
                 if (socket && socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify({
@@ -471,80 +1059,20 @@
                 }
             });
         }
-
-        async function checkSolution() {
-            if (!isConnected) {
-                alert('Not connected to server. Please start the server first.');
-                return;
-            }
-            
-            const loading = document.getElementById('loading');
-            const result = document.getElementById('result');
-            
-            loading.classList.add('show');
-            result.classList.remove('show');
-            
-            try {
-                const response = await fetch(`${API_URL}/check-solution`, {
-                    method: 'POST'
-                });
-                
-                const data = await response.json();
-                
-                loading.classList.remove('show');
-                result.classList.add('show');
-                
-                if (data.success) {
-                    result.className = 'result show success';
-                    result.innerHTML = '<strong>🎉 Excellent!</strong><br>You have successfully completed the task!<br><br>';
-                    data.checks.forEach(check => {
-                        result.innerHTML += `<div class="check-item passed">${check.message}</div>`;
-                    });
-                } else {
-                    result.className = 'result show error';
-                    result.innerHTML = '<strong>❌ Issues Found:</strong><br><br>';
-                    data.checks.forEach(check => {
-                        const className = check.passed ? 'passed' : 'failed';
-                        result.innerHTML += `<div class="check-item ${className}">${check.message}</div>`;
-                    });
-                }
-            } catch (error) {
-                loading.classList.remove('show');
-                result.className = 'result show error';
-                result.classList.add('show');
-                result.innerHTML = '<strong>Error:</strong> Cannot connect to server. Make sure the backend is running.';
-            }
-        }
-
-        async function resetLab() {
-            if (!isConnected) {
-                alert('Not connected to server. Please start the server first.');
-                return;
-            }
-            
-            if (!confirm('This will delete the user and group. Continue?')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_URL}/reset`, {
-                    method: 'POST'
-                });
-                
-                const data = await response.json();
-                
-                term.writeln('\r\n\x1b[32m=== Lab Environment Reset ===\x1b[0m');
-                term.writeln(`\x1b[32m${data.output}\x1b[0m\r\n`);
-                
-                const result = document.getElementById('result');
-                result.classList.remove('show');
-            } catch (error) {
-                term.writeln('\r\n\x1b[31mError: Cannot connect to server\x1b[0m\r\n');
-            }
-        }
-
-        // Initialize on load
-        window.onload = initTerminal;
     </script>
 </body>
-</html>
+</html>padding:5px;">${check.message}</div>`;
+                    });
+                    result.innerHTML += `<br><strong>Score: +${q.points} points</strong>`;
+                    
+                    // Update state
+                    questionStates[currentQuestionIndex].status = 'completed';
+                    questionStates[currentQuestionIndex].score = q.points;
+                    saveState();
+                    renderQuestionNav();
+                    
+                } else if (percentage >= 50) {
+                    result.className = 'result show partial';
+                    result.innerHTML = `<strong>⚠️ Partially Correct</strong><br>Progress: ${correctCount}/${totalReqs} requirements (${percentage.toFixed(0)}%)<br><br>`;
+                    data.checks.forEach(check => {
+                        result.innerHTML += `<div style="
