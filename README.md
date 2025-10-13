@@ -28,7 +28,7 @@
 ```bash
 # Clone the repository
 https://github.com/SYED-ABDULRAHMAN/terminal.git
-cd rhel-user-lab
+cd terminal
 
 # Install dependencies
 apt install npm
