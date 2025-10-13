@@ -27,7 +27,7 @@
 
 ```bash
 # Clone the repository
-https://github.com/SYED-ABDULRAHMAN/terminal.git
+git clone --branch 5-question --single-branch https://github.com/SYED-ABDULRAHMAN/terminal.git
 cd terminal
 
 # Install dependencies
