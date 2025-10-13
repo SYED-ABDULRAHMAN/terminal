@@ -27,7 +27,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/rhel-user-lab.git
+https://github.com/SYED-ABDULRAHMAN/terminal.git
 cd rhel-user-lab
 
 # Install dependencies
