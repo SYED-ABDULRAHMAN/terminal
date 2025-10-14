@@ -31,7 +31,7 @@ git clone --branch 5-question --single-branch https://github.com/SYED-ABDULRAHMA
 cd terminal
 
 # Install dependencies
-apt install npm
+apt install npm -y
 
 npm install 
 
