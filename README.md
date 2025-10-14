@@ -33,13 +33,7 @@ cd terminal
 # Install dependencies
 apt install npm
 
-npm install node-pty ws
-
-sudo apt-get install -y make python3 build-essential
-
-npm install node-pty ws
-
-npm install express cors
+npm install 
 
 
 # Start the server (requires sudo)
