@@ -44,7 +44,7 @@ sudo node server.js
 
 or
 
-Lauch the container
+Launch the container
 docker run -d -p 3000:3000 --name rhel-user-lab syedabdulrahman134/rhel-user-lab:latest
 ```
 
