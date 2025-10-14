@@ -8,408 +8,69 @@
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            background: white;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
-            color: white;
-            padding: 20px 30px;
-        }
-        
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .header h1 {
-            font-size: 1.8em;
-        }
-        
-        .progress-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            background: rgba(255,255,255,0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9em;
-        }
-        
-        .question-nav {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-        
-        .question-btn {
-            background: rgba(255,255,255,0.3);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.5);
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-            min-width: 60px;
-        }
-        
-        .question-btn:hover {
-            background: rgba(255,255,255,0.4);
-            transform: translateY(-2px);
-        }
-        
-        .question-btn.active {
-            background: white;
-            color: #ee0979;
-            border-color: white;
-        }
-        
-        .question-btn.completed {
-            background: #00ff00;
-            color: #000;
-            border-color: #00ff00;
-        }
-        
-        .question-btn.skipped {
-            background: #ffbb00;
-            color: #000;
-            border-color: #ffbb00;
-        }
-        
-        .question-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .content {
-            display: grid;
-            grid-template-columns: 450px 1fr;
-            height: calc(100vh - 140px);
-        }
-        
-        .question-panel {
-            background: #f8f9fa;
-            padding: 30px;
-            border-right: 2px solid #e0e0e0;
-            overflow-y: auto;
-        }
-        
-        .terminal-panel {
-            background: #000;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .question-header {
-            margin-bottom: 20px;
-        }
-        
-        .question-title {
-            color: #333;
-            font-size: 1.4em;
-            margin-bottom: 10px;
-        }
-        
-        .question-meta {
-            display: flex;
-            gap: 15px;
-            font-size: 0.9em;
-            color: #666;
-        }
-        
-        .difficulty {
-            background: #fff3cd;
-            padding: 4px 12px;
-            border-radius: 12px;
-            color: #856404;
-        }
-        
-        .question-body {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #ee0979;
-        }
-        
-        .question-body p {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-        
-        .requirements {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        
-        .requirements h3 {
-            color: #856404;
-            font-size: 1.1em;
-            margin-bottom: 10px;
-        }
-        
-        .requirement-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 8px 0;
-            color: #856404;
-        }
-        
-        .requirement-item.checked {
-            color: #155724;
-            background: #d4edda;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        
-        .requirement-item.failed {
-            color: #721c24;
-            background: #f8d7da;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        
-        .hint-section {
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            color: #0c5460;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 15px;
-        }
-        
-        .hint-section h4 {
-            margin-bottom: 10px;
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        .hint-content {
-            display: none;
-            margin-top: 10px;
-            line-height: 1.6;
-        }
-        
-        .hint-content.show {
-            display: block;
-        }
-        
-        .solution-section {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 15px;
-        }
-        
-        .solution-section h4 {
-            margin-bottom: 10px;
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        .solution-content {
-            display: none;
-            margin-top: 10px;
-            line-height: 1.8;
-        }
-        
-        .solution-content.show {
-            display: block;
-        }
-        
-        .solution-content code {
-            background: #fff;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .action-buttons button {
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-        
-        .btn-check {
-            background: #007bff;
-            color: white;
-            grid-column: span 2;
-            padding: 15px;
-            font-size: 16px;
-        }
-        
-        .btn-check:hover {
-            background: #0056b3;
-            transform: translateY(-2px);
-        }
-        
-        .btn-skip {
-            background: #ffc107;
-            color: #000;
-        }
-        
-        .btn-skip:hover {
-            background: #e0a800;
-        }
-        
-        .btn-reset {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-reset:hover {
-            background: #545b62;
-        }
-        
-        .btn-prev {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-prev:hover {
-            background: #545b62;
-        }
-        
-        .btn-next {
-            background: #28a745;
-            color: white;
-        }
-        
-        .btn-next:hover {
-            background: #218838;
-        }
-        
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 6px;
-            display: none;
-        }
-        
-        .result.show {
-            display: block;
-        }
-        
-        .result.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-        
-        .result.partial {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #856404;
-        }
-        
-        .result.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-        
-        .terminal-container {
-            flex: 1;
-            background: #000;
-            border-radius: 8px;
-            padding: 10px;
-            overflow: hidden;
-        }
-        
-        #terminal {
-            height: 100%;
-            width: 100%;
-        }
-        
-        .connection-status {
-            padding: 10px;
-            text-align: center;
-            font-size: 0.9em;
-            margin-top: 10px;
-            border-radius: 6px;
-        }
-        
-        .connection-status.connected {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .connection-status.disconnected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 10px;
-            color: #666;
-        }
-        
-        .loading.show {
-            display: block;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1600px; margin: 0 auto; background: white; min-height: 100vh; overflow: hidden; }
+        .header { background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%); color: white; padding: 20px 30px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .header h1 { font-size: 1.8em; }
+        .progress-info { display: flex; gap: 20px; align-items: center; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 0.9em; }
+        .question-nav { display: flex; gap: 10px; justify-content: center; }
+        .question-btn { background: rgba(255,255,255,0.3); color: white; border: 2px solid rgba(255,255,255,0.5); padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-weight: bold; min-width: 60px; }
+        .question-btn:hover { background: rgba(255,255,255,0.4); transform: translateY(-2px); }
+        .question-btn.active { background: white; color: #ee0979; border-color: white; }
+        .question-btn.completed { background: #00ff00; color: #000; border-color: #00ff00; }
+        .question-btn.skipped { background: #ffbb00; color: #000; border-color: #ffbb00; }
+        .question-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .content { display: grid; grid-template-columns: 450px 1fr; height: calc(100vh - 140px); }
+        .question-panel { background: #f8f9fa; padding: 30px; border-right: 2px solid #e0e0e0; overflow-y: auto; }
+        .terminal-panel { background: #000; padding: 20px; display: flex; flex-direction: column; }
+        .question-header { margin-bottom: 20px; }
+        .question-title { color: #333; font-size: 1.4em; margin-bottom: 10px; }
+        .question-meta { display: flex; gap: 15px; font-size: 0.9em; color: #666; }
+        .difficulty { background: #fff3cd; padding: 4px 12px; border-radius: 12px; color: #856404; }
+        .question-body { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ee0979; }
+        .question-body p { color: #555; line-height: 1.6; margin-bottom: 15px; }
+        .requirements { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 15px; margin-top: 15px; }
+        .requirements h3 { color: #856404; font-size: 1.1em; margin-bottom: 10px; }
+        .requirement-item { display: flex; align-items: center; gap: 10px; margin: 8px 0; color: #856404; }
+        .requirement-item.checked { color: #155724; background: #d4edda; padding: 5px; border-radius: 4px; }
+        .requirement-item.failed { color: #721c24; background: #f8d7da; padding: 5px; border-radius: 4px; }
+        .hint-section, .solution-section { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 6px; margin-top: 15px; }
+        .solution-section { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .hint-section h4, .solution-section h4 { margin-bottom: 10px; cursor: pointer; user-select: none; }
+        .hint-content, .solution-content { display: none; margin-top: 10px; line-height: 1.6; }
+        .hint-content.show, .solution-content.show { display: block; }
+        .solution-content code { background: #fff; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+        .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .action-buttons button { padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-size: 14px; }
+        .btn-check { background: #007bff; color: white; grid-column: span 2; padding: 15px; font-size: 16px; }
+        .btn-check:hover { background: #0056b3; transform: translateY(-2px); }
+        .btn-skip { background: #ffc107; color: #000; }
+        .btn-skip:hover { background: #e0a800; }
+        .btn-reset { background: #6c757d; color: white; }
+        .btn-reset:hover { background: #545b62; }
+        .btn-prev { background: #6c757d; color: white; }
+        .btn-prev:hover { background: #545b62; }
+        .btn-next { background: #28a745; color: white; }
+        .btn-next:hover { background: #218838; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 6px; display: none; }
+        .result.show { display: block; }
+        .result.success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .result.partial { background: #fff3cd; border: 1px solid #ffc107; color: #856404; }
+        .result.error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .terminal-container { flex: 1; background: #000; border-radius: 8px; padding: 10px; overflow: hidden; }
+        #terminal { height: 100%; width: 100%; }
+        .connection-status { padding: 10px; text-align: center; font-size: 0.9em; margin-top: 10px; border-radius: 6px; }
+        .connection-status.connected { background: #d4edda; color: #155724; }
+        .connection-status.disconnected { background: #f8d7da; color: #721c24; }
+        .loading { display: none; text-align: center; padding: 10px; color: #666; }
+        .loading.show { display: block; }
         @media (max-width: 1200px) {
-            .content {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
-            
-            .question-panel {
-                border-right: none;
-                border-bottom: 2px solid #e0e0e0;
-                max-height: 50vh;
-            }
-            
-            .terminal-panel {
-                min-height: 50vh;
-            }
+            .content { grid-template-columns: 1fr; height: auto; }
+            .question-panel { border-right: none; border-bottom: 2px solid #e0e0e0; max-height: 50vh; }
+            .terminal-panel { min-height: 50vh; }
         }
     </style>
 </head>
@@ -423,9 +84,7 @@
                     <span id="scoreText">Score: 0/100</span>
                 </div>
             </div>
-            <div class="question-nav" id="questionNav">
-                <!-- Question buttons will be inserted here -->
-            </div>
+            <div class="question-nav" id="questionNav"></div>
         </div>
         
         <div class="content">
@@ -441,27 +100,20 @@
                 
                 <div class="question-body">
                     <p id="questionDescription">Loading question...</p>
-                    
                     <div class="requirements">
                         <h3>📋 Requirements:</h3>
-                        <div id="requirementsList">
-                            <!-- Requirements will be inserted here -->
-                        </div>
+                        <div id="requirementsList"></div>
                     </div>
                 </div>
                 
                 <div class="hint-section">
                     <h4 onclick="toggleHints()">💡 Hints <span id="hintToggle">[Show]</span></h4>
-                    <div class="hint-content" id="hintContent">
-                        <!-- Hints will be inserted here -->
-                    </div>
+                    <div class="hint-content" id="hintContent"></div>
                 </div>
                 
                 <div class="solution-section">
                     <h4 onclick="toggleSolution()">📖 Solution <span id="solutionToggle">[Show]</span></h4>
-                    <div class="solution-content" id="solutionContent">
-                        <!-- Solution will be inserted here -->
-                    </div>
+                    <div class="solution-content" id="solutionContent"></div>
                 </div>
                 
                 <div class="action-buttons">
@@ -474,7 +126,6 @@
                 
                 <div class="loading" id="loading">⏳ Checking...</div>
                 <div id="result" class="result"></div>
-                
                 <div class="connection-status" id="connectionStatus"></div>
             </div>
             
@@ -486,23 +137,20 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
     <script>
-        // Questions Database
         const questions = [
             {
-                id: 1,
-                title: "Create Basic User Account",
-                category: "User Management",
-                difficulty: "⭐",
-                points: 15,
+                id: 1, title: "Create Basic User Account", category: "User Management", difficulty: "⭐", points: 15,
                 description: "You are a system administrator and need to create a new user account for a developer joining your team.",
                 requirements: [
-                    { id: 'username', text: 'Username: john_dev', check: 'username' },
-                    { id: 'uid', text: 'User ID (UID): 2500', check: 'uid' },
-                    { id: 'home', text: 'Home Directory: /home/john_dev', check: 'home' },
-                    { id: 'shell', text: 'Shell: /bin/bash', check: 'shell' },
-                    { id: 'comment', text: 'Comment: Developer Account', check: 'comment' },
-                    { id: 'group', text: 'Primary Group: developers (GID: 3000)', check: 'group' }
+                    { id: 'username', text: 'Username: john_dev' },
+                    { id: 'uid', text: 'User ID (UID): 2500' },
+                    { id: 'home', text: 'Home Directory: /home/john_dev' },
+                    { id: 'shell', text: 'Shell: /bin/bash' },
+                    { id: 'comment', text: 'Comment: Developer Account' },
+                    { id: 'group', text: 'Primary Group: developers (GID: 3000)' }
                 ],
                 hints: [
                     "Always create the group before creating the user",
@@ -512,26 +160,22 @@
                 solution: [
                     "sudo groupadd -g 3000 developers",
                     "sudo useradd -u 2500 -g developers -d /home/john_dev -s /bin/bash -c \"Developer Account\" john_dev",
-                    "id john_dev  # Verify the user",
-                    "getent passwd john_dev  # Check user details"
+                    "id john_dev",
+                    "getent passwd john_dev"
                 ],
                 verifyEndpoint: '/check-solution',
                 cleanupCommands: 'userdel -r john_dev; groupdel developers'
             },
             {
-                id: 2,
-                title: "Create User with Multiple Groups",
-                category: "User Management",
-                difficulty: "⭐⭐",
-                points: 20,
+                id: 2, title: "Create User with Multiple Groups", category: "User Management", difficulty: "⭐⭐", points: 20,
                 description: "Create a user account that belongs to multiple groups for a system administrator who needs access to various services.",
                 requirements: [
-                    { id: 'username', text: 'Username: admin_user', check: 'username' },
-                    { id: 'uid', text: 'User ID (UID): 3000', check: 'uid' },
-                    { id: 'primaryGroup', text: 'Primary Group: sysadmin (GID: 4000)', check: 'primaryGroup' },
-                    { id: 'secondaryGroups', text: 'Secondary Groups: wheel, docker', check: 'secondaryGroups' },
-                    { id: 'home', text: 'Home Directory: /home/admin_user', check: 'home' },
-                    { id: 'shell', text: 'Shell: /bin/bash', check: 'shell' }
+                    { id: 'username', text: 'Username: admin_user' },
+                    { id: 'uid', text: 'User ID (UID): 3000' },
+                    { id: 'primaryGroup', text: 'Primary Group: sysadmin (GID: 4000)' },
+                    { id: 'secondaryGroups', text: 'Secondary Groups: wheel, docker' },
+                    { id: 'home', text: 'Home Directory: /home/admin_user' },
+                    { id: 'shell', text: 'Shell: /bin/bash' }
                 ],
                 hints: [
                     "Create all groups first (primary and secondary)",
@@ -540,28 +184,24 @@
                 ],
                 solution: [
                     "sudo groupadd -g 4000 sysadmin",
-                    "sudo groupadd wheel 2>/dev/null || true  # Create if doesn't exist",
+                    "sudo groupadd wheel 2>/dev/null || true",
                     "sudo groupadd docker 2>/dev/null || true",
                     "sudo useradd -u 3000 -g sysadmin -G wheel,docker -d /home/admin_user -s /bin/bash admin_user",
-                    "id admin_user  # Verify groups",
-                    "groups admin_user  # List all groups"
+                    "id admin_user",
+                    "groups admin_user"
                 ],
                 verifyEndpoint: '/check-question-2',
                 cleanupCommands: 'userdel -r admin_user; groupdel sysadmin'
             },
             {
-                id: 3,
-                title: "Create System Service Account",
-                category: "User Management",
-                difficulty: "⭐⭐",
-                points: 20,
+                id: 3, title: "Create System Service Account", category: "User Management", difficulty: "⭐⭐", points: 20,
                 description: "Create a system account for running a web service. System accounts are used by services and daemons, not for interactive login.",
                 requirements: [
-                    { id: 'username', text: 'Username: webapp', check: 'username' },
-                    { id: 'uid', text: 'UID: Below 1000 (system account range)', check: 'uid' },
-                    { id: 'home', text: 'Home Directory: /var/www/webapp', check: 'home' },
-                    { id: 'shell', text: 'Shell: /sbin/nologin (no login)', check: 'shell' },
-                    { id: 'system', text: 'System account flag used', check: 'system' }
+                    { id: 'username', text: 'Username: webapp' },
+                    { id: 'uid', text: 'UID: Below 1000 (system account range)' },
+                    { id: 'home', text: 'Home Directory: /var/www/webapp' },
+                    { id: 'shell', text: 'Shell: /sbin/nologin (no login)' },
+                    { id: 'system', text: 'System account flag used' }
                 ],
                 hints: [
                     "Use the -r flag to create a system account",
@@ -572,25 +212,21 @@
                 solution: [
                     "sudo mkdir -p /var/www",
                     "sudo useradd -r -d /var/www/webapp -s /sbin/nologin webapp",
-                    "id webapp  # UID should be < 1000",
+                    "id webapp",
                     "getent passwd webapp"
                 ],
                 verifyEndpoint: '/check-question-3',
                 cleanupCommands: 'userdel -r webapp'
             },
             {
-                id: 4,
-                title: "Modify Existing User Properties",
-                category: "User Management",
-                difficulty: "⭐⭐⭐",
-                points: 25,
+                id: 4, title: "Modify Existing User Properties", category: "User Management", difficulty: "⭐⭐⭐", points: 25,
                 description: "You need to modify an existing user's properties. First create the user, then modify it according to the new requirements.",
                 requirements: [
-                    { id: 'username', text: 'Username: testuser', check: 'username' },
-                    { id: 'newShell', text: 'Modified Shell: /bin/zsh', check: 'shell' },
-                    { id: 'newHome', text: 'Modified Home: /opt/testuser', check: 'home' },
-                    { id: 'newComment', text: 'Modified Comment: Modified Test User', check: 'comment' },
-                    { id: 'addedGroup', text: 'Added to group: testgroup', check: 'group' }
+                    { id: 'username', text: 'Username: testuser' },
+                    { id: 'newShell', text: 'Modified Shell: /bin/zsh' },
+                    { id: 'newHome', text: 'Modified Home: /opt/testuser' },
+                    { id: 'newComment', text: 'Modified Comment: Modified Test User' },
+                    { id: 'addedGroup', text: 'Added to group: testgroup' }
                 ],
                 hints: [
                     "First create the user with basic settings",
@@ -600,19 +236,12 @@
                     "Create testgroup first before adding user to it"
                 ],
                 solution: [
-                    "# Step 1: Create initial user",
                     "sudo useradd -m testuser",
-                    "",
-                    "# Step 2: Create the group",
                     "sudo groupadd testgroup",
-                    "",
-                    "# Step 3: Modify user properties",
                     "sudo usermod -s /bin/zsh testuser",
-                    "sudo usermod -d /opt/testuser -m testuser  # -m moves home directory",
+                    "sudo usermod -d /opt/testuser -m testuser",
                     "sudo usermod -c \"Modified Test User\" testuser",
                     "sudo usermod -aG testgroup testuser",
-                    "",
-                    "# Verify",
                     "getent passwd testuser",
                     "groups testuser"
                 ],
@@ -620,18 +249,14 @@
                 cleanupCommands: 'userdel -r testuser; groupdel testgroup; rm -rf /opt/testuser'
             },
             {
-                id: 5,
-                title: "Create User with Password Expiration",
-                category: "User Management",
-                difficulty: "⭐⭐⭐",
-                points: 20,
+                id: 5, title: "Create User with Password Expiration", category: "User Management", difficulty: "⭐⭐⭐", points: 20,
                 description: "Create a temporary contractor account with password expiration policy for security compliance.",
                 requirements: [
-                    { id: 'username', text: 'Username: contractor', check: 'username' },
-                    { id: 'uid', text: 'UID: 5000', check: 'uid' },
-                    { id: 'expiry', text: 'Account expires: 2025-12-31', check: 'expiry' },
-                    { id: 'maxdays', text: 'Password max age: 30 days', check: 'maxdays' },
-                    { id: 'warndays', text: 'Password warning: 7 days before expiry', check: 'warndays' }
+                    { id: 'username', text: 'Username: contractor' },
+                    { id: 'uid', text: 'UID: 5000' },
+                    { id: 'expiry', text: 'Account expires: 2025-12-31' },
+                    { id: 'maxdays', text: 'Password max age: 30 days' },
+                    { id: 'warndays', text: 'Password warning: 7 days before expiry' }
                 ],
                 hints: [
                     "Use 'chage' command to set password aging policies",
@@ -641,14 +266,9 @@
                     "Date format: YYYY-MM-DD"
                 ],
                 solution: [
-                    "# Create user with expiration date",
                     "sudo useradd -u 5000 -e 2025-12-31 contractor",
-                    "",
-                    "# Set password aging policy",
-                    "sudo chage -M 30 contractor  # Max 30 days",
-                    "sudo chage -W 7 contractor   # Warn 7 days before",
-                    "",
-                    "# Verify settings",
+                    "sudo chage -M 30 contractor",
+                    "sudo chage -W 7 contractor",
                     "sudo chage -l contractor",
                     "getent passwd contractor"
                 ],
@@ -657,13 +277,13 @@
             }
         ];
 
-        // State Management
         let currentQuestionIndex = 0;
         let questionStates = [];
         let term, socket, fitAddon;
         let isConnected = false;
+        const API_URL = window.location.origin;
+        const WS_URL = API_URL.replace('http', 'ws');
 
-        // Initialize from localStorage
         function initializeState() {
             const saved = localStorage.getItem('rhel_lab_progress');
             if (saved) {
@@ -671,7 +291,7 @@
             } else {
                 questionStates = questions.map(q => ({
                     id: q.id,
-                    status: 'incomplete', // incomplete, skipped, completed
+                    status: 'incomplete',
                     score: 0,
                     maxScore: q.points
                 }));
@@ -679,12 +299,10 @@
             }
         }
 
-        // Save state to localStorage
         function saveState() {
             localStorage.setItem('rhel_lab_progress', JSON.stringify(questionStates));
         }
 
-        // Initialize
         window.onload = function() {
             initializeState();
             renderQuestionNav();
@@ -692,7 +310,6 @@
             initTerminal();
         };
 
-        // Render question navigation buttons
         function renderQuestionNav() {
             const nav = document.getElementById('questionNav');
             nav.innerHTML = '';
@@ -722,7 +339,6 @@
             updateProgress();
         }
 
-        // Load question
         function loadQuestion(index) {
             currentQuestionIndex = index;
             const q = questions[index];
@@ -733,37 +349,25 @@
             document.getElementById('questionNumber').textContent = `Question ${index + 1}/5`;
             document.getElementById('questionDescription').textContent = q.description;
             
-            // Render requirements
             const reqList = document.getElementById('requirementsList');
             reqList.innerHTML = '';
             q.requirements.forEach(req => {
                 const div = document.createElement('div');
                 div.className = 'requirement-item';
                 div.innerHTML = `<span>☐</span> <span>${req.text}</span>`;
-                div.id = `req-${req.id}`;
                 reqList.appendChild(div);
             });
             
-            // Render hints
-            const hintContent = document.getElementById('hintContent');
-            hintContent.innerHTML = q.hints.map(h => `• ${h}<br>`).join('');
+            document.getElementById('hintContent').innerHTML = q.hints.map(h => `• ${h}<br>`).join('');
+            document.getElementById('solutionContent').innerHTML = q.solution.map(s => `<code>${s}</code><br>`).join('');
             
-            // Render solution
-            const solContent = document.getElementById('solutionContent');
-            solContent.innerHTML = q.solution.map(s => `<code>${s}</code><br>`).join('');
-            
-            // Update buttons
             document.getElementById('prevBtn').disabled = index === 0;
             document.getElementById('nextBtn').disabled = index === questions.length - 1;
-            
-            // Clear result
             document.getElementById('result').classList.remove('show');
             
-            // Update navigation
             renderQuestionNav();
         }
 
-        // Toggle hints
         function toggleHints() {
             const content = document.getElementById('hintContent');
             const toggle = document.getElementById('hintToggle');
@@ -776,7 +380,6 @@
             }
         }
 
-        // Toggle solution
         function toggleSolution() {
             const content = document.getElementById('solutionContent');
             const toggle = document.getElementById('solutionToggle');
@@ -789,7 +392,6 @@
             }
         }
 
-        // Check answer
         async function checkAnswer() {
             if (!isConnected) {
                 alert('Not connected to server. Please start the server first.');
@@ -813,20 +415,20 @@
                 loading.classList.remove('show');
                 result.classList.add('show');
                 
-                // Update requirement checkboxes
                 let correctCount = 0;
-                data.checks.forEach(check => {
-                    const reqEl = document.querySelector(`#requirementsList .requirement-item:nth-child(${data.checks.indexOf(check) + 1})`);
-                    if (reqEl) {
+                const reqItems = document.querySelectorAll('#requirementsList .requirement-item');
+                
+                data.checks.forEach((check, index) => {
+                    if (reqItems[index]) {
                         if (check.passed) {
-                            reqEl.classList.add('checked');
-                            reqEl.classList.remove('failed');
-                            reqEl.querySelector('span:first-child').textContent = '✓';
+                            reqItems[index].classList.add('checked');
+                            reqItems[index].classList.remove('failed');
+                            reqItems[index].querySelector('span:first-child').textContent = '✓';
                             correctCount++;
                         } else {
-                            reqEl.classList.add('failed');
-                            reqEl.classList.remove('checked');
-                            reqEl.querySelector('span:first-child').textContent = '✗';
+                            reqItems[index].classList.add('failed');
+                            reqItems[index].classList.remove('checked');
+                            reqItems[index].querySelector('span:first-child').textContent = '✗';
                         }
                     }
                 });
@@ -840,7 +442,19 @@
                     data.checks.forEach(check => {
                         result.innerHTML += `<div style="padding:5px;">${check.message}</div>`;
                     });
+                    result.innerHTML += `<br><strong>Score: +${q.points} points</strong>`;
                     
+                    questionStates[currentQuestionIndex].status = 'completed';
+                    questionStates[currentQuestionIndex].score = q.points;
+                    saveState();
+                    renderQuestionNav();
+                    
+                } else if (percentage >= 50) {
+                    result.className = 'result show partial';
+                    result.innerHTML = `<strong>⚠️ Partially Correct</strong><br>Progress: ${correctCount}/${totalReqs} requirements (${percentage.toFixed(0)}%)<br><br>`;
+                    data.checks.forEach(check => {
+                        result.innerHTML += `<div style="padding:5px;">${check.message}</div>`;
+                    });
                 } else {
                     result.className = 'result show error';
                     result.innerHTML = `<strong>❌ Issues Found</strong><br>Progress: ${correctCount}/${totalReqs} requirements (${percentage.toFixed(0)}%)<br><br>`;
@@ -857,7 +471,6 @@
             }
         }
 
-        // Skip question
         function skipQuestion() {
             if (confirm('Skip this question? You can come back to it later.')) {
                 questionStates[currentQuestionIndex].status = 'skipped';
@@ -871,21 +484,18 @@
             }
         }
 
-        // Previous question
         function prevQuestion() {
             if (currentQuestionIndex > 0) {
                 loadQuestion(currentQuestionIndex - 1);
             }
         }
 
-        // Next question
         function nextQuestion() {
             if (currentQuestionIndex < questions.length - 1) {
                 loadQuestion(currentQuestionIndex + 1);
             }
         }
 
-        // Reset current question
         async function resetCurrentQuestion() {
             if (!confirm('Reset this question? This will clean up any users/groups you created.')) {
                 return;
@@ -907,12 +517,10 @@
                 term.writeln('\r\n\x1b[32m=== Question Reset ===\x1b[0m');
                 term.writeln(`\x1b[32m${data.output}\x1b[0m\r\n`);
                 
-                // Reset question state
                 questionStates[currentQuestionIndex].status = 'incomplete';
                 questionStates[currentQuestionIndex].score = 0;
                 saveState();
                 
-                // Reload question
                 loadQuestion(currentQuestionIndex);
                 
             } catch (error) {
@@ -920,7 +528,6 @@
             }
         }
 
-        // Update progress display
         function updateProgress() {
             const completed = questionStates.filter(q => q.status === 'completed').length;
             const totalScore = questionStates.reduce((sum, q) => sum + q.score, 0);
@@ -929,10 +536,6 @@
             document.getElementById('progressText').textContent = `Progress: ${completed}/5`;
             document.getElementById('scoreText').textContent = `Score: ${totalScore}/${maxScore}`;
         }
-
-        // Terminal initialization
-        const API_URL = window.location.origin;
-        const WS_URL = API_URL.replace('http', 'ws');
 
         function initTerminal() {
             term = new Terminal({
@@ -1061,18 +664,4 @@
         }
     </script>
 </body>
-</html>padding:5px;">${check.message}</div>`;
-                    });
-                    result.innerHTML += `<br><strong>Score: +${q.points} points</strong>`;
-                    
-                    // Update state
-                    questionStates[currentQuestionIndex].status = 'completed';
-                    questionStates[currentQuestionIndex].score = q.points;
-                    saveState();
-                    renderQuestionNav();
-                    
-                } else if (percentage >= 50) {
-                    result.className = 'result show partial';
-                    result.innerHTML = `<strong>⚠️ Partially Correct</strong><br>Progress: ${correctCount}/${totalReqs} requirements (${percentage.toFixed(0)}%)<br><br>`;
-                    data.checks.forEach(check => {
-                        result.innerHTML += `<div style="
+</html>
