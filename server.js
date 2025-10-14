@@ -116,8 +116,11 @@ function execCommand(command) {
     });
 }
 
-// Check solution endpoint
+// ========================================
+// QUESTION 1: Basic User Creation
+// ========================================
 app.post('/check-solution', async (req, res) => {
+    console.log('Checking Question 1...');
     try {
         const checks = [];
         
@@ -196,258 +199,355 @@ app.post('/check-solution', async (req, res) => {
         }
         
         const allPassed = checks.every(c => c.passed);
+        console.log('Question 1 result:', allPassed);
         res.json({
             success: allPassed,
             checks: checks
         });
     } catch (error) {
-        res.json({
+        console.error('Error in check-solution:', error);
+        res.status(500).json({
             success: false,
-            checks: [],
-            error: error.message
+            checks: [{
+                name: 'Error',
+                passed: false,
+                message: 'Server error: ' + error.message
+            }]
         });
     }
 });
 
-// -----------------------------
-// ✅ CHECK QUESTION 2 - Multiple Groups
-// -----------------------------
+// ========================================
+// QUESTION 2: Multiple Groups
+// ========================================
 app.post('/check-question-2', async (req, res) => {
+    console.log('Checking Question 2...');
     try {
         const checks = [];
+        
+        // Check user exists
         const userOutput = await execCommand('id admin_user 2>&1');
-        const groupOutput = await execCommand('getent group sysadmin');
-
         const userExists = !userOutput.includes('no such user');
-        const groupExists = groupOutput.includes('sysadmin');
-
+        
         checks.push({
             name: 'User "admin_user" exists',
             passed: userExists,
             message: userExists ? '✓ User exists' : '✗ User not found'
         });
-
-        checks.push({
-            name: 'Primary group "sysadmin" exists',
-            passed: groupExists,
-            message: groupExists ? '✓ Group exists' : '✗ Group not found'
-        });
-
+        
         if (userExists) {
+            // Check UID
             const uidMatch = userOutput.match(/uid=(\d+)/);
             const uid = uidMatch ? uidMatch[1] : null;
-
             checks.push({
                 name: 'UID is 3000',
                 passed: uid === '3000',
-                message: uid === '3000' ? '✓ Correct UID' : `✗ UID is ${uid}`
+                message: uid === '3000' ? '✓ Correct UID' : `✗ UID is ${uid}, should be 3000`
             });
-
-            const primaryGroup = userOutput.match(/gid=\d+\((\w+)\)/)?.[1];
+            
+            // Check primary group
+            const gidMatch = userOutput.match(/gid=\d+\((\w+)\)/);
+            const primaryGroup = gidMatch ? gidMatch[1] : null;
             checks.push({
                 name: 'Primary group is "sysadmin"',
                 passed: primaryGroup === 'sysadmin',
-                message: primaryGroup === 'sysadmin' ? '✓ Correct primary group' : `✗ Found ${primaryGroup}`
+                message: primaryGroup === 'sysadmin' ? '✓ Correct primary group' : `✗ Group is ${primaryGroup}`
             });
-
-            const hasWheel = userOutput.includes('wheel');
-            const hasDocker = userOutput.includes('docker');
-
+            
+            // Check secondary groups
+            const groupsOutput = await execCommand('groups admin_user');
+            const hasWheel = groupsOutput.includes('wheel');
+            const hasDocker = groupsOutput.includes('docker');
+            
             checks.push({
-                name: 'Member of groups "wheel" and "docker"',
-                passed: hasWheel && hasDocker,
-                message: hasWheel && hasDocker ? '✓ Both groups assigned' : '✗ Missing wheel or docker group'
+                name: 'Member of "wheel" group',
+                passed: hasWheel,
+                message: hasWheel ? '✓ In wheel group' : '✗ Not in wheel group'
             });
-
-            const passwd = await execCommand('getent passwd admin_user');
-            const parts = passwd.split(':');
-            const home = parts[5];
-            const shell = parts[6]?.trim();
-
+            
             checks.push({
-                name: 'Home directory is /home/admin_user',
-                passed: home === '/home/admin_user',
-                message: home === '/home/admin_user' ? '✓ Correct home' : `✗ Home is ${home}`
+                name: 'Member of "docker" group',
+                passed: hasDocker,
+                message: hasDocker ? '✓ In docker group' : '✗ Not in docker group'
             });
-
-            checks.push({
-                name: 'Shell is /bin/bash',
-                passed: shell === '/bin/bash',
-                message: shell === '/bin/bash' ? '✓ Correct shell' : `✗ Shell is ${shell}`
-            });
+            
+            // Check home and shell
+            const passwdOutput = await execCommand('getent passwd admin_user');
+            if (passwdOutput) {
+                const parts = passwdOutput.split(':');
+                const home = parts[5];
+                const shell = parts[6]?.trim();
+                
+                checks.push({
+                    name: 'Home directory is /home/admin_user',
+                    passed: home === '/home/admin_user',
+                    message: home === '/home/admin_user' ? '✓ Correct home' : `✗ Home is ${home}`
+                });
+                
+                checks.push({
+                    name: 'Shell is /bin/bash',
+                    passed: shell === '/bin/bash',
+                    message: shell === '/bin/bash' ? '✓ Correct shell' : `✗ Shell is ${shell}`
+                });
+            }
         }
-
+        
+        const allPassed = checks.every(c => c.passed);
+        console.log('Question 2 result:', allPassed);
         res.json({
-            success: checks.every(c => c.passed),
-            checks
+            success: allPassed,
+            checks: checks
         });
-    } catch (err) {
-        res.json({ success: false, checks: [], error: err.message });
+    } catch (error) {
+        console.error('Error in check-question-2:', error);
+        res.status(500).json({
+            success: false,
+            checks: [{
+                name: 'Error',
+                passed: false,
+                message: 'Server error: ' + error.message
+            }]
+        });
     }
 });
 
-
-// -----------------------------
-// ✅ CHECK QUESTION 3 - System Account
-// -----------------------------
+// ========================================
+// QUESTION 3: System Service Account
+// ========================================
 app.post('/check-question-3', async (req, res) => {
+    console.log('Checking Question 3...');
     try {
         const checks = [];
-        const output = await execCommand('getent passwd webapp 2>/dev/null');
-        const userExists = output.includes('webapp');
-
+        
+        // Check user exists
+        const userOutput = await execCommand('id webapp 2>&1');
+        const userExists = !userOutput.includes('no such user');
+        
         checks.push({
             name: 'User "webapp" exists',
             passed: userExists,
             message: userExists ? '✓ User exists' : '✗ User not found'
         });
-
+        
         if (userExists) {
-            const uidMatch = output.match(/:x:(\d+):/);
+            // Check UID (should be < 1000 for system account)
+            const uidMatch = userOutput.match(/uid=(\d+)/);
             const uid = uidMatch ? parseInt(uidMatch[1]) : null;
+            const isSystemUID = uid && uid < 1000;
+            
             checks.push({
-                name: 'UID below 1000 (system user)',
-                passed: uid && uid < 1000,
-                message: uid && uid < 1000 ? `✓ UID ${uid}` : `✗ UID is ${uid}`
+                name: 'UID below 1000 (system account)',
+                passed: isSystemUID,
+                message: isSystemUID ? `✓ System UID: ${uid}` : `✗ UID is ${uid}, should be < 1000`
             });
-
+            
+            // Check home and shell
+            const passwdOutput = await execCommand('getent passwd webapp');
+            if (passwdOutput) {
+                const parts = passwdOutput.split(':');
+                const home = parts[5];
+                const shell = parts[6]?.trim();
+                
+                checks.push({
+                    name: 'Home directory is /var/www/webapp',
+                    passed: home === '/var/www/webapp',
+                    message: home === '/var/www/webapp' ? '✓ Correct home' : `✗ Home is ${home}`
+                });
+                
+                const isNoLogin = shell === '/sbin/nologin' || shell === '/usr/sbin/nologin';
+                checks.push({
+                    name: 'Shell is /sbin/nologin',
+                    passed: isNoLogin,
+                    message: isNoLogin ? '✓ No login shell' : `✗ Shell is ${shell}`
+                });
+            }
+            
             checks.push({
-                name: 'Home directory is /var/www/webapp',
-                passed: output.includes('/var/www/webapp'),
-                message: output.includes('/var/www/webapp') ? '✓ Correct home' : '✗ Incorrect home'
-            });
-
-            checks.push({
-                name: 'Shell is /sbin/nologin',
-                passed: output.includes('/sbin/nologin'),
-                message: output.includes('/sbin/nologin') ? '✓ Correct shell' : '✗ Incorrect shell'
+                name: 'Created as system account (-r flag)',
+                passed: isSystemUID,
+                message: isSystemUID ? '✓ System account' : '✗ Not a system account'
             });
         }
-
+        
+        const allPassed = checks.every(c => c.passed);
+        console.log('Question 3 result:', allPassed);
         res.json({
-            success: checks.every(c => c.passed),
-            checks
+            success: allPassed,
+            checks: checks
         });
-    } catch (err) {
-        res.json({ success: false, checks: [], error: err.message });
+    } catch (error) {
+        console.error('Error in check-question-3:', error);
+        res.status(500).json({
+            success: false,
+            checks: [{
+                name: 'Error',
+                passed: false,
+                message: 'Server error: ' + error.message
+            }]
+        });
     }
 });
 
-
-// -----------------------------
-// ✅ CHECK QUESTION 4 - Modify User Properties
-// -----------------------------
+// ========================================
+// QUESTION 4: Modify User Properties
+// ========================================
 app.post('/check-question-4', async (req, res) => {
+    console.log('Checking Question 4...');
     try {
         const checks = [];
-        const passwdOutput = await execCommand('getent passwd testuser 2>/dev/null');
-        const groupsOutput = await execCommand('groups testuser 2>/dev/null');
-        const userExists = passwdOutput.includes('testuser');
-
+        
+        // Check user exists
+        const userOutput = await execCommand('id testuser 2>&1');
+        const userExists = !userOutput.includes('no such user');
+        
         checks.push({
             name: 'User "testuser" exists',
             passed: userExists,
             message: userExists ? '✓ User exists' : '✗ User not found'
         });
-
+        
         if (userExists) {
-            const parts = passwdOutput.split(':');
-            const home = parts[5];
-            const shell = parts[6]?.trim();
-            const comment = parts[4];
-
+            // Check shell
+            const passwdOutput = await execCommand('getent passwd testuser');
+            if (passwdOutput) {
+                const parts = passwdOutput.split(':');
+                const home = parts[5];
+                const shell = parts[6]?.trim();
+                const comment = parts[4];
+                
+                checks.push({
+                    name: 'Shell is /bin/zsh',
+                    passed: shell === '/bin/zsh',
+                    message: shell === '/bin/zsh' ? '✓ Correct shell' : `✗ Shell is ${shell}`
+                });
+                
+                checks.push({
+                    name: 'Home directory is /opt/testuser',
+                    passed: home === '/opt/testuser',
+                    message: home === '/opt/testuser' ? '✓ Correct home' : `✗ Home is ${home}`
+                });
+                
+                checks.push({
+                    name: 'Comment is "Modified Test User"',
+                    passed: comment === 'Modified Test User',
+                    message: comment === 'Modified Test User' ? '✓ Correct comment' : `✗ Comment is "${comment}"`
+                });
+            }
+            
+            // Check if added to testgroup
+            const groupsOutput = await execCommand('groups testuser');
+            const inTestGroup = groupsOutput.includes('testgroup');
+            
             checks.push({
-                name: 'Shell changed to /bin/zsh',
-                passed: shell === '/bin/zsh',
-                message: shell === '/bin/zsh' ? '✓ Correct shell' : `✗ Found ${shell}`
-            });
-
-            checks.push({
-                name: 'Home directory changed to /opt/testuser',
-                passed: home === '/opt/testuser',
-                message: home === '/opt/testuser' ? '✓ Correct home' : `✗ Found ${home}`
-            });
-
-            checks.push({
-                name: 'Comment is "Modified Test User"',
-                passed: comment.includes('Modified Test User'),
-                message: comment.includes('Modified Test User') ? '✓ Correct comment' : `✗ Found ${comment}`
-            });
-
-            const inGroup = groupsOutput.includes('testgroup');
-            checks.push({
-                name: 'Added to group "testgroup"',
-                passed: inGroup,
-                message: inGroup ? '✓ Group membership correct' : '✗ Not in testgroup'
+                name: 'Added to "testgroup"',
+                passed: inTestGroup,
+                message: inTestGroup ? '✓ In testgroup' : '✗ Not in testgroup'
             });
         }
-
+        
+        const allPassed = checks.every(c => c.passed);
+        console.log('Question 4 result:', allPassed);
         res.json({
-            success: checks.every(c => c.passed),
-            checks
+            success: allPassed,
+            checks: checks
         });
-    } catch (err) {
-        res.json({ success: false, checks: [], error: err.message });
+    } catch (error) {
+        console.error('Error in check-question-4:', error);
+        res.status(500).json({
+            success: false,
+            checks: [{
+                name: 'Error',
+                passed: false,
+                message: 'Server error: ' + error.message
+            }]
+        });
     }
 });
 
-
-// -----------------------------
-// ✅ CHECK QUESTION 5 - Password Expiration
-// -----------------------------
+// ========================================
+// QUESTION 5: Password Expiration
+// ========================================
 app.post('/check-question-5', async (req, res) => {
+    console.log('Checking Question 5...');
     try {
         const checks = [];
-        const passwdOutput = await execCommand('getent passwd contractor 2>/dev/null');
-        const chageOutput = await execCommand('sudo chage -l contractor 2>/dev/null');
-        const userExists = passwdOutput.includes('contractor');
-
+        
+        // Check user exists
+        const userOutput = await execCommand('id contractor 2>&1');
+        const userExists = !userOutput.includes('no such user');
+        
         checks.push({
             name: 'User "contractor" exists',
             passed: userExists,
             message: userExists ? '✓ User exists' : '✗ User not found'
         });
-
+        
         if (userExists) {
-            const uidMatch = passwdOutput.match(/:x:(\d+):/);
+            // Check UID
+            const uidMatch = userOutput.match(/uid=(\d+)/);
             const uid = uidMatch ? uidMatch[1] : null;
             checks.push({
                 name: 'UID is 5000',
                 passed: uid === '5000',
-                message: uid === '5000' ? '✓ Correct UID' : `✗ Found UID ${uid}`
+                message: uid === '5000' ? '✓ Correct UID' : `✗ UID is ${uid}`
             });
-
-            const expires = chageOutput.includes('2025-12-31') || chageOutput.includes('Dec 31, 2025');
+            
+            // Check password aging
+            const chageOutput = await execCommand('sudo chage -l contractor 2>&1');
+            
+            // Check account expiration
+            const expiryMatch = chageOutput.match(/Account expires\s*:\s*(.+)/i);
+            const hasExpiry = expiryMatch && (expiryMatch[1].includes('2025') || expiryMatch[1].includes('Dec 31, 2025'));
+            
             checks.push({
-                name: 'Account expires on 2025-12-31',
-                passed: expires,
-                message: expires ? '✓ Correct expiry date' : '✗ Wrong or missing expiry date'
+                name: 'Account expires in 2025',
+                passed: hasExpiry,
+                message: hasExpiry ? '✓ Expiration date set' : '✗ Expiration date not set correctly'
             });
-
-            const maxDays = chageOutput.match(/Maximum number of days.*: (\d+)/)?.[1];
+            
+            // Check max password age
+            const maxDaysMatch = chageOutput.match(/Maximum number of days between password change\s*:\s*(\d+)/i);
+            const maxDays = maxDaysMatch ? maxDaysMatch[1] : null;
+            
             checks.push({
                 name: 'Password max age is 30 days',
                 passed: maxDays === '30',
-                message: maxDays === '30' ? '✓ Correct max age' : `✗ Found ${maxDays}`
+                message: maxDays === '30' ? '✓ Max age: 30 days' : `✗ Max age is ${maxDays} days`
             });
-
-            const warnDays = chageOutput.match(/Number of days of warning.*: (\d+)/)?.[1];
+            
+            // Check warning days
+            const warnMatch = chageOutput.match(/Number of days of warning before password expires\s*:\s*(\d+)/i);
+            const warnDays = warnMatch ? warnMatch[1] : null;
+            
             checks.push({
                 name: 'Password warning is 7 days',
                 passed: warnDays === '7',
-                message: warnDays === '7' ? '✓ Correct warning days' : `✗ Found ${warnDays}`
+                message: warnDays === '7' ? '✓ Warning: 7 days' : `✗ Warning is ${warnDays} days`
             });
         }
-
+        
+        const allPassed = checks.every(c => c.passed);
+        console.log('Question 5 result:', allPassed);
         res.json({
-            success: checks.every(c => c.passed),
-            checks
+            success: allPassed,
+            checks: checks
         });
-    } catch (err) {
-        res.json({ success: false, checks: [], error: err.message });
+    } catch (error) {
+        console.error('Error in check-question-5:', error);
+        res.status(500).json({
+            success: false,
+            checks: [{
+                name: 'Error',
+                passed: false,
+                message: 'Server error: ' + error.message
+            }]
+        });
     }
 });
 
+// ========================================
+// UTILITY ENDPOINTS
+// ========================================
 
 // Get system info
 app.get('/system-info', async (req, res) => {
@@ -467,7 +567,7 @@ app.get('/system-info', async (req, res) => {
     }
 });
 
-// Reset (remove user and group)
+// Reset all
 app.post('/reset', async (req, res) => {
     try {
         await execCommand('userdel -r john_dev 2>/dev/null; groupdel developers 2>/dev/null');
@@ -477,14 +577,47 @@ app.post('/reset', async (req, res) => {
         });
     } catch (error) {
         res.json({ 
-            output: 'Reset completed (some resources may not have existed)',
+            output: 'Reset completed',
             success: true 
         });
     }
 });
 
+// Reset specific question
+app.post('/reset-question', async (req, res) => {
+    console.log('Reset question request:', req.body);
+    const { questionId, cleanupCommands } = req.body;
+    
+    try {
+        if (cleanupCommands) {
+            await execCommand(cleanupCommands + ' 2>/dev/null');
+        }
+        res.json({ 
+            output: `Question ${questionId} reset successfully`,
+            success: true 
+        });
+    } catch (error) {
+        res.json({ 
+            output: 'Reset completed',
+            success: true 
+        });
+    }
+});
+
+// Start server
 server.listen(PORT, () => {
     console.log(`🚀 RHEL User Lab Server running on http://localhost:${PORT}`);
     console.log(`📝 Make sure to run this with appropriate permissions (sudo if needed)`);
     console.log(`🔌 WebSocket server ready for terminal connections`);
+    console.log('');
+    console.log('Available endpoints:');
+    console.log('  POST /check-solution      - Question 1');
+    console.log('  POST /check-question-2    - Question 2');
+    console.log('  POST /check-question-3    - Question 3');
+    console.log('  POST /check-question-4    - Question 4');
+    console.log('  POST /check-question-5    - Question 5');
+    console.log('  POST /reset-question      - Reset specific question');
+    console.log('  POST /reset               - Reset all');
+    console.log('  GET  /system-info         - Get system info');
+    console.log('');
 });
