@@ -41,6 +41,11 @@ sudo node server.js
 
 # Open browser
 # Navigate to: http://localhost:3000
+
+or
+
+Lauch the container
+docker run -d -p 3000:3000 --name rhel-user-lab syedabdulrahman134/rhel-user-lab:latest
 ```
 
 ---
